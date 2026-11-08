@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý & In Biểu Mẫu Tự Động - Công Ty Quang Vinh</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* PHÔNG NỀN TỔNG THỂ */
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: Arial, Helvetica, sans-serif; 
+        }
+
+        /* GIAO DIỆN KHUNG ĐĂNG NHẬP / KÍCH HOẠT KEY */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .login-box h3 {
+            text-align: center;
+            color: #1e3a8a;
+            font-size: 18px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .login-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .login-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #475569;
+        }
+        .login-group input {
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .login-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .btn-action {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: background 0.2s;
+        }
+        .btn-action:hover { background: #1d4ed8; }
+        .btn-activate { background: #16a34a; }
+        .btn-activate:hover { background: #15803d; }
+        #login-error {
+            color: #dc2626;
+            font-size: 13px;
+            text-align: center;
+            min-height: 16px;
+            line-height: 1.4;
+        }
+        
+        /* CỘT NHẬP LIỆU BÊN TRÁI */
+        .sidebar {
+            width: 420px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            box-shadow: 6px 0 25px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        .sidebar h2 { 
+            font-size: 16px; 
+            color: #1e3a8a; 
+            border-bottom: 2.5px solid #3b82f6; 
+            padding-bottom: 6px; 
+            text-transform: uppercase; 
+            font-weight: bold;
+        }
+        
+        .note-quangdu {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #000000;
+            text-transform: uppercase;
+            line-height: 1.4;
+            padding: 16px; 
+            background: #fef2f2;
+            border-left: 6px solid #dc2626; 
+            border-radius: 6px;
+        }
+
+        .user-info-badge { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 6px; font-size: 13px; color: #1e3a8a; display: flex; flex-direction: column; gap: 4px; }
+        .user-info-badge div { display: flex; justify-content: space-between; }
+        .key-status-badge { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; font-size: 13px; color: #334155; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .key-input-box { background: #f8fafc; border: 1px dashed #94a3b8; padding: 14px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+        .key-input-box label { font-size: 12px; font-weight: bold; color: #334155; text-transform: uppercase; }
+        .key-input-box input { padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
+        .btn-logout { background: #dc2626; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: auto; }
+        .btn-logout:hover { background: #b91c1c; }
+
+        /* NÚT CHUYỂN CHẾ ĐỘ MOBILE APP */
+        .btn-mobile-toggle {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-mobile-toggle:hover { background: #0369a1; }
+
+        .section-tag { 
+            background: #f8fafc; 
+            padding: 6px 10px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: #475569; 
+            border-left: 3px solid #2563eb; 
+            margin-top: 4px; 
+            text-transform: uppercase;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .form-group { display: flex; flex-direction: column; gap: 3px; }
+        .form-group label { font-size: 12px; font-weight: bold; color: #334155; }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: Arial, Helvetica, sans-serif; 
+            outline: none;
+            background: #fdfdfd;
+            transition: all 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+            border-color: #2563eb; 
+            background: #fff; 
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); 
+        }
+
+        /* KHU VỰC CHỌN TAB & HIỂN THỊ BÊN PHẢI */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tab-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-bottom: 1px solid #cbd5e1;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .tab-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 8px 14px;
+            border: 1px solid #cbd5e1;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .tab-btn.active { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; box-shadow: 0 2px 6px rgba(29, 78, 216, 0.3); }
+        
+        .btn-print-top {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: Arial, Helvetica, sans-serif;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-print-top:hover { background: #15803d; }
+
+        /* VÙNG XEM TRƯỚC TRANG GIẤY */
+        .preview-container {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            background: #e2e8f0;
+        }
+        .paper {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 12mm 10mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            font-family: 'Times New Roman', Times, serif; 
+            color: #000;
+            font-size: 14px;
+            line-height: 1.35;
+            display: none;
+            overflow: hidden;
+        }
+        .paper.active { display: block; }
+
+        /* ĐỊNH DẠNG CHUNG BIỂU MẪU */
+        .header-2col {
+            display: flex;
+            align-items: center;
+            border-bottom: 1.5px solid #000;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        
+        .header-left { 
+            width: 35%; 
+            text-align: left; 
+            margin-left: 0; 
+        }
+        .header-right { 
+            width: 70%; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .date-hd-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0 8px 0;
+            font-weight: bold;
+        }
+        .line-item { margin-bottom: 5px; }
+        .bold { font-weight: bold; }
+        
+        .sign-row-3 { display: flex; justify-content: space-between; text-align: center; margin-top: 10px; font-weight: bold; }
+        .sign-space { height: 150px; }
+        
+        /* CSS CHỮ KÝ NẰM NGANG TRÊN CÙNG 1 HÀNG */
+        .sign-row-horizontal {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 14pt;
+            width: 100%;
+        }
+        .sign-col-left {
+            width: 50%;
+            text-align: left;
+            padding-left: 40px;
+        }
+        .sign-col-right {
+            width: 50%;
+            text-align: left;
+            padding-left: 40px;
+        }
+        .sign-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .sign-sub {
+            font-size: 11pt;
+            font-style: normal;
+        }
+
+        /* ĐỊNH DẠNG BẢNG BIÊN BẢN BÀN GIAO MẪU 6 & 3 */
+        .handover-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0 10px 0;
+            font-size: 12.5px;
+        }
+        .handover-table th, .handover-table td {
+            border: 1px solid #000;
+            padding: 5px 6px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .handover-table th {
+            background-color: #f1f5f9;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* ĐỊNH DẠNG THỎA THUẬN 5 TRANG CHUẨN MẪU WORD */
+        .contract-page {
+            position: relative;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm 20mm 20mm 25mm;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20mm;
+            page-break-after: always;
+            break-after: page;
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            font-size: 12pt;
+            line-height: 1.4;
+        }
+        .page-number {
+            position: absolute;
+            bottom: 15mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12pt;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        
+        .contract-header {
+            display: grid;
+            grid-template-columns: 38% 62%;
+            width: 100%;
+            align-items: start;
+            text-align: center;
+            column-gap: 0;
+            margin-bottom: 28pt;
+            font-family: "Times New Roman", serif;
+        }
+
+        .header-company,
+        .header-national {
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-main {
+            width: 100%;
+            font-family: "Times New Roman", serif;
+            font-size: 13.5pt;
+            font-weight: bold;
+            line-height: 1.3;
+            text-align: center !important;
+            margin: 0 0 5pt !important;
+            white-space: nowrap;
+        }
+
+        .header-number {
+            width: 100%;
+            font-family: "Times New Roman", serif;
+            font-size: 12pt;
+            line-height: 1.3;
+            text-align: center !important;
+            margin: 0 !important;
+        }
+
+        .header-slogan {
+            width: 100%;
+            font-family: "Times New Roman", serif;
+            font-size: 13.5pt;
+            font-weight: bold;
+            line-height: 1.3;
+            text-align: center !important;
+            margin: 0 0 5pt !important;
+        }
+
+        .header-line {
+            width: 55%;
+            border-bottom: 1px solid #000;
+            margin: 4pt auto 0;
+        }
+
+        .contract-title { text-align: center; margin: 8px 0; }
+        .contract-title h2 { font-size: 14pt; font-weight: bold; text-decoration: underline; }
+        .contract-title p { font-style: italic; font-size: 12pt; text-align: center; }
+        .contract-section { font-weight: bold; text-transform: uppercase; margin-top: 14px; margin-bottom: 6px; font-size: 13pt; color: #000; }
+        .contract-page p { margin-bottom: 6px; text-align: justify; font-size: 12pt; line-height: 1.4; }
+
+        /* CSS RIÊNG CHO TRANG 7 (1/2 TRANG A4 - ÉP TOÀN BỘ CHỮ IN ĐẬM VÀ MÀU ĐEN) */
+        .vandon-table, .vandon-table * {
+            font-weight: bold !important;
+            color: black !important;
+        }
+
+        .vandon-half-page {
+            width: 100%;
+            height: 132mm;
+            padding: 5mm 0mm;
+            border: 1px dashed #666;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            margin-bottom: 5mm;
+        }
+        .vandon-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+        .vandon-table th, .vandon-table td {
+            border: 2px solid #000;
+            padding: 8px 12px;
+            vertical-align: middle;
+        }
+        .vd-header-cell {
+            background-color: #d9d9d9;
+            text-align: center;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .vd-label-cell {
+            width: 13%;
+            text-align: center;
+        }
+        .vd-val-cell {
+            text-align: left;
+            padding-left: 12px;
+            font-size: 14.5px;
+        }
+        .vd-ebill-cell {
+            text-align: center;
+            font-size: 15.5px;
+            width: 25%;
+        }
+        .vd-note-cell {
+            text-align: center;
+            font-size: 14px;
+            width: 25%;
+        }
+
+        /* ================= CẤU HÌNH GIAO DIỆN MOBI APP VỪA KHÍT KHUNG HÌNH ================= */
+        body.mobile-mode, @media (max-width: 900px) {
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                align-items: center !important;
+                background: #f1f5f9 !important;
+            }
+
+            .sidebar {
+                width: 100% !important;
+                max-width: 480px !important;
+                border-right: none !important;
+                border-bottom: 1px solid #cbd5e1 !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
+                padding: 12px !important;
+                overflow-y: visible !important;
+                height: auto !important;
+            }
+
+            .main-area {
+                width: 100% !important;
+                max-width: 480px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            /* Đẩy thanh chọn trang (tab-bar) xuống dưới form thông tin */
+            .tab-bar {
+                order: 1 !important;
+                width: 100% !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                padding: 14px 12px !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 8px !important;
+                background: #ffffff !important;
+                margin-top: 10px !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+            }
+
+            .tab-buttons {
+                width: 100% !important;
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 6px !important;
+            }
+
+            .tab-btn {
+                padding: 10px 8px !important;
+                font-size: 12.5px !important;
+                text-align: center !important;
+            }
+
+            .btn-print-top {
+                width: 100% !important;
+                padding: 12px !important;
+                font-size: 14px !important;
+                text-align: center !important;
+            }
+
+            /* Vùng xem trước đẩy xuống dưới cùng sau phần chọn mẫu & in */
+            .preview-container {
+                order: 2 !important;
+                width: 100% !important;
+                padding: 12px 4px !important;
+                overflow-x: auto !important;
+                overflow-y: visible !important;
+                display: block !important;
+                background: #e2e8f0 !important;
+                margin-top: 10px !important;
+            }
+
+            .paper {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                padding: 12px 10px !important;
+                border-radius: 6px !important;
+            }
+
+            .contract-page {
+                width: 100% !important;
+                min-width: 100% !important;
+                padding: 14px 10px !important;
+                font-size: 11pt !important;
+                margin-bottom: 15px !important;
+            }
+
+            .header-main { font-size: 11pt !important; }
+            .header-slogan { font-size: 11pt !important; }
+            .vandon-half-page { height: auto !important; padding: 4px !important; margin-bottom: 10px !important; }
+            .vandon-table { font-size: 12px !important; }
+            .vandon-table th, .vandon-table td { padding: 5px 6px !important; }
+        }
+
+        @media print {
+            body { background: white !important; height: auto !important; overflow: visible !important; display: block !important; }
+            .sidebar, .tab-bar, #login-overlay, .btn-mobile-toggle { display: none !important; }
+            .main-area, .preview-container { padding: 0 !important; display: block !important; overflow: visible !important; background: white !important; width: 100% !important; max-width: none !important; }
+            .paper.active { box-shadow: none !important; width: 210mm !important; height: 297mm !important; padding: 10mm 15mm !important; display: block !important; page-break-after: always; break-after: page; }
+            #tab-2 .contract-page, #tab-5 .contract-page { padding: 20mm 20mm 20mm 25mm !important; height: 297mm !important; width: 210mm !important; }
+            @page { size: A4 portrait; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MÀN HÌNH ĐĂNG NHẬP / KÍCH HOẠT KEY -->
+    <div id="login-overlay" style="display: none;">
+        <div class="login-box">
+            <h3 id="form-title">Đăng nhập hệ thống</h3>
+            
+            <div id="login-fields">
+                <div class="login-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="login-user" placeholder="Nhập tên đăng nhập...">
+                </div>
+                <div class="login-group" style="margin-top: 8px;">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="login-pass" placeholder="Nhập mật khẩu...">
+                </div>
+            </div>
+
+            <div id="key-activate-fields" style="display: none; margin-top: 5px;">
+                <div class="login-group">
+                    <label style="color: #dc2626;">Nhập Mã Key Bản Quyền Mới</label>
+                    <input type="text" id="activate-key-input" placeholder="Nhập mã Key gia hạn tại đây...">
+                </div>
+            </div>
+
+            <div id="login-error"></div>
+
+            <button class="btn-action" id="btn-submit-login" onclick="handleLogin()">Đăng nhập</button>
+            <button class="btn-action btn-activate" id="btn-submit-key" onclick="handleActivateKeyOverlay()" style="display: none;">Kích Hoạt Key</button>
+        </div>
+    </div>
+
+    <!-- CỘT NHẬP LIỆU BÊN TRÁI -->
+    <div class="sidebar">
+        <!-- NÚT CHUYỂN MOBI APP / MÁY TÍNH -->
+        <button type="button" class="btn-mobile-toggle" onclick="toggleMobileMode()">
+            <span id="btn-mobile-text">📱 Chuyển sang Mobi App</span>
+        </button>
+
+        <div class="note-quangdu">
+            HỆ THỐNG BẢN QUYỀN<br>
+            <span style="font-size: 13px; color: #555; text-transform: none;">Liên hệ Quang Dự: 0988.057.750</span>
+            <div style="color: #00129A;">CHI PHÍ DUY TRÌ LÀ 4 BỘ TRẢ GÓP HD SAISON 1 THÁNG</div>
+        </div>
+
+        <div class="user-info-badge">
+            <div><span>Tài khoản:</span> <b id="display-user-name">Chưa đăng nhập</b></div>
+        </div>
+
+        <div class="key-status-badge">
+            <span>Trạng thái bản quyền:</span>
+            <b id="key-expiry-display" style="color: #2563eb;">Đang kiểm tra...</b>
+        </div>
+
+        <div class="key-input-box">
+            <label>Nạp / Gia Hạn Key Trực Tiếp</label>
+            <input type="text" id="sidebar-key-input" placeholder="Nhập mã Key mới...">
+            <button class="btn-action btn-activate" onclick="handleSidebarKeyUpdate()" style="padding: 8px; font-size: 13px;">Kích Hoạt Key</button>
+            <button class="btn-action" onclick="manualSyncData()" style="background: #475569; padding: 8px; font-size: 12px; margin-top: 4px;">🔄 Đồng Bộ Lại Ngay</button>
+        </div>
+
+        <button class="btn-logout" onclick="handleLogout()">Đăng xuất / Đổi tài khoản</button>
+        
+        <!-- KHUNG NHẬP LIỆU DÀNH CHO TRANG 1 ĐẾN 6 -->
+        <div id="sidebar-form-default" style="margin-top: 10px;">
+            <h2>NHẬP THÔNG TIN CHUNG</h2>
+
+            <div class="section-tag">1. Cửa hàng & Số Hóa Đơn</div>
+            <div class="form-group">
+                <label>Chọn Chi nhánh Cửa hàng</label>
+                <select id="in_chinhanh" onchange="autoFillBranch()">
+                    <option value="VF8">VINFAST QUANG VINH 8 (127 đường 14/10)</option>
+                    <option value="QV1">QUANG VINH 1 (Cách ngã 3 Trái Diêm 100m)</option>
+                    <option value="QV2">QUANG VINH 2 (Cách ngã 3 Trái Diêm 300m)</option>
+                    <option value="QV5">QUANG VINH 5 (Vĩnh Trà, Hưng Phú)</option>
+                </select>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Số HĐ / Số Phiếu</label>
+                    <input type="text" id="in_sohd" value="1042" oninput="syncAll()">
+                </div>
+                <div class="form-group">
+                    <label>Ngày lập (DD/MM/YYYY)</label>
+                    <input type="text" id="in_ngay" value="" oninput="syncAll()">
+                </div>
+            </div>
+
+            <div class="section-tag">2. Thông tin Khách hàng</div>
+            <div class="form-group">
+                <label>Họ và tên khách hàng (Tự động in hoa)</label>
+                <input type="text" id="in_hoten" value="NGUYỄN THỊ CÚC" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); syncAll()">
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <input type="text" id="in_sdt" value="0387144897" oninput="syncAll()">
+                </div>
+                <div class="form-group">
+                    <label>Ngày sinh KH</label>
+                    <input type="text" id="in_ngaysinh" value="6/5/1980" oninput="syncAll()">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Số CCCD</label>
+                    <input type="text" id="in_cccd" value="034180005242" oninput="syncAll()">
+                </div>
+                <div class="form-group">
+                    <label>Ngày cấp CCCD</label>
+                    <input type="text" id="in_ngaycap" value="27/6/2021" oninput="syncAll()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Nơi cấp CCCD</label>
+                <input type="text" id="in_noicap" value="BỘ CÔNG AN" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); syncAll()">
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ khách hàng</label>
+                <input type="text" id="in_diachi" value="XÃ TIỀN HẢI ,TỈNH HƯNG YÊN" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); syncAll()">
+            </div>
+
+            <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Loại xe</label>
+                    <input type="text" id="in_loaixe" value="EVO GRAND LITE" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); syncAll()">
+                </div>
+                <div class="form-group">
+                    <label>Nhãn hiệu / Hãng</label>
+                    <input type="text" id="in_nhanhieu" value="Vinfast" oninput="syncAll()">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Màu sắc</label>
+                    <input type="text" id="in_mausac" value="TRẮNG" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); syncAll()">
+                </div>
+                <div class="form-group">
+                    <label>PIN (kèm xe)</label>
+                    <input type="text" id="in_pin" value="Kèm theo xe" oninput="syncAll()">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Số khung (SK)</label>
+                    <input type="text" id="in_sk" value="702436" oninput="syncAll()">
+                </div>
+                <div class="form-group">
+                    <label>Số máy (SM)</label>
+                    <input type="text" id="in_sm" value="250212" oninput="syncAll()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Số seri sạc</label>
+                <input type="text" id="in_serisac" value="DRT00011629GB0003001260811D06705" oninput="syncAll()">
+            </div>
+
+            <div class="section-tag">4. Thanh toán & Ghi chú</div>
+            <div class="form-group">
+                <label>Tổng tiền phải thanh toán</label>
+                <input type="text" id="in_tongtien" value="15.600.000 VNĐ" oninput="syncAll()">
+            </div>
+            <div class="form-group">
+                <label>Số tiền đã thanh toán / Số tiền thu</label>
+                <input type="text" id="in_dathanhtoan" value="15.600.000 VNĐ (NGUYÊN XE+DKY+THẢM)" oninput="syncAll()">
+            </div>
+            <div class="form-group">
+                <label>Số tiền KH còn nợ lại</label>
+                <input type="text" id="in_conno" value="0 VNĐ" oninput="syncAll()">
+            </div>
+            <div class="form-group">
+                <label>Lý do thu / Ghi chú đặc biệt</label>
+                <input type="text" id="in_ghichu" value="NỢ HÓA ĐƠN + ĐĂNG KIỂM" oninput="syncAll()">
+            </div>
+        </div>
+
+        <!-- KHUNG NHẬP LIỆU RIÊNG DÀNH CHO TRANG 7 (IN MÃ VẬN ĐƠN 1/2 A4) -->
+        <div id="sidebar-form-page7" style="display: none; margin-top: 10px;">
+            <h2>NHẬP THÔNG TIN TRANG 7 (VẬN ĐƠN)</h2>
+
+            <div class="section-tag">1. Thông tin Người Gửi</div>
+            <div class="form-group">
+                <label>Họ tên Người Gửi</label>
+                <input type="text" id="vd_nguoigui_ten" value="Nguyễn Quang Dự" oninput="syncPage7()">
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ Người Gửi</label>
+                <input type="text" id="vd_nguoigui_diachi" value="Nhà Ông Vinh, Tổ Dân Phố Số 5, Xã Tiền Hải, Hưng Yên" oninput="syncPage7()">
+            </div>
+            <div class="form-group">
+                <label>SĐT Người Gửi</label>
+                <input type="text" id="vd_nguoigui_sdt" value="0988.057.750 - 0868.268.862" oninput="syncPage7()">
+            </div>
+
+            <div class="section-tag">2. Thông tin Người Nhận</div>
+            <div class="form-group">
+                <label>Họ tên Người Nhận</label>
+                <input type="text" id="vd_nguoinhan_ten" value="Phòng BO" oninput="syncPage7()">
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ Người Nhận</label>
+                <input type="text" id="vd_nguoinhan_diachi" value="Tầng 3_Tòa nhà VIT_519 Kim Mã, Phường Giảng Võ, Hà Nội" oninput="syncPage7()">
+            </div>
+            <div class="form-group">
+                <label>SĐT Người Nhận</label>
+                <input type="text" id="vd_nguoinhan_sdt" value="1900558854" oninput="syncPage7()">
+            </div>
+
+            <div class="section-tag">3. Mã EBILL & Note</div>
+            <div class="form-group">
+                <label>Mã EBILL</label>
+                <input type="text" id="vd_ebill" value="ES683901704VN" oninput="syncPage7()">
+            </div>
+            <div class="form-group">
+                <label>Nội dung Note</label>
+                <input type="text" id="vd_note" value="PHỤ LỤC HỢP ĐỒNG TÍN DỤNG" oninput="syncPage7()">
+            </div>
+        </div>
+
+        <!-- KHUNG NHẬP LIỆU RIÊNG DÀNH CHO TRANG 8 (QR HD SAISON) -->
+        <div id="sidebar-form-page8" style="display: none; margin-top: 10px;">
+            <h2>NHẬP THÔNG TIN TRANG 8 (QR HD SAISON)</h2>
+
+            <div class="section-tag">Thông tin thanh toán QR</div>
+            <div class="form-group">
+                <label>Số tiền QR (VND):</label>
+                <input type="number" id="qr_amount" placeholder="Để trống nếu khách tự nhập">
+                <div style="font-size:11px; color:#666; font-style:italic;">Nhập số tiền hoặc để trống, khách tự nhập khi quét mã</div>
+            </div>
+            <div class="form-group">
+                <label>Số tiền trả hàng tháng (Gốc + Lãi chuẩn):</label>
+                <input type="number" id="qr_monthlyAmount" placeholder="VD: 1500000">
+                <div style="font-size:11px; color:#666; font-style:italic;">Số tiền thanh toán hàng tháng chưa phát sinh phí phạt</div>
+            </div>
+            <div class="form-group">
+                <label>Số Hợp Đồng / Số Thẻ:</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="text" id="qr_contract" placeholder="VD: DL038007989" style="flex: 1; margin-top: 0;">
+                    <button type="button" onclick="startQRScanner()" style="margin-top: 0; padding: 0 12px; width: auto; background: #2563eb; color: #fff; border: none; font-size: 13px; border-radius: 6px; cursor: pointer;">📷 Quét QR</button>
+                </div>
+            </div>
+
+            <!-- Khu vực hiển thị khung camera quét ẩn/hiện -->
+            <div id="qr-reader-container" style="display: none; margin-top: 10px; position: relative;">
+                <div id="qr-reader" style="width: 100%;"></div>
+                <button type="button" onclick="stopQRScanner()" style="margin-top: 5px; padding: 6px; background: #dc2626; color: white; border: none; font-size: 12px; border-radius: 4px; cursor: pointer;">Đóng Camera</button>
+            </div>
+            <div class="form-group">
+                <label>Tên Khách Hàng:</label>
+                <input type="text" id="qr_name" placeholder="VD: NGUYEN VAN A" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="form-group">
+                <label>Ngày ký hợp đồng:</label>
+                <input type="date" id="qr_contractDate">
+            </div>
+            <div class="form-group">
+                <label>Ngày thanh toán đầu tiên:</label>
+                <input type="date" id="qr_firstPaymentDate">
+                <div style="font-size:11px; color:#666; font-style:italic;">Chọn ngày dự kiến thanh toán kỳ đầu (có thể bỏ trống)</div>
+            </div>
+            <div class="form-group">
+                <label>Ngày thanh toán cuối cùng:</label>
+                <input type="date" id="qr_lastPaymentDate">
+                <div style="font-size:11px; color:#666; font-style:italic;">Chọn ngày kết thúc hợp đồng (có thể bỏ trống)</div>
+            </div>
+            <button onclick="generateQR()" style="width: 100%; padding: 12px; background-color: #d32f2f; color: white; border: none; margin-top: 15px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer;">TẠO MÃ QR</button>
+        </div>
+    </div>
+
+    <!-- KHU VỰC CHỌN TAB & HIỂN THỊ BÊN PHẢI -->
+    <div class="main-area">
+        <div class="tab-bar">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab(1, this)">1. Biên Nhận VF8</button>
+                <button class="tab-btn" onclick="switchTab(2, this)">2. Thỏa Thuận Mất Xe VF8</button>
+                <button class="tab-btn" onclick="switchTab(3, this)">3. Biên Bản Bàn Giao Xe VF8</button>
+                <button class="tab-btn" onclick="switchTab(4, this)">4. Biên Nhận &#128541; Thoa - Ngơ &#128541;</button>
+                <button class="tab-btn" onclick="switchTab(5, this)">5. Thỏa Thuận Mất Xe &#128541; Thoa - Ngơ &#128541;</button>
+                <button class="tab-btn" onclick="switchTab(6, this)">6. Biên Bản Bàn Giao Xe &#128541; Thoa - Ngơ &#128541;</button>
+                <button class="tab-btn" onclick="switchTab(7, this)">7.&#128386; In Mã Vận Đơn &#128234; </button>
+                <button class="tab-btn" onclick="switchTab(8, this)">8.&#128184; QR HD Saison &#128184;</button>
+            </div>
+            <button class="btn-print-top" onclick="window.print()">🖨️ IN MẪU ĐANG CHỌN</button>
+        </div>
+
+        <div class="preview-container">
+
+            <!-- ================= MẪU 1: HĐ Khách Đăng Ký Xe ================= -->
+            <div id="tab-1" class="paper active">
+                <div class="header-2col" style="display: flex; align-items: center; justify-content: flex-start; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin-bottom: 8px;">
+                    <div style="display: inline-block; width: max-content; flex-shrink: 0;">
+                        <div style="border: 1.5px solid #000; background-color: #dcdcdc; padding: 6px 8px; text-align: left; margin-left: 0;">
+                            <h3 class="out_ten_ch" style="font-size: 13.5px; font-weight: bold; white-space: nowrap;">VINFAST QUANG VINH 8</h3>
+                            <p class="out_dc_ch" style="font-size: 12px; white-space: nowrap;">Số 127 đường 14/10, TT Tiền Hải</p>
+                            <p style="font-size: 12px; white-space: nowrap;">ĐT: <span class="out_sdt_ch">0929.116.288</span></p>
+                            <p style="font-size: 11.5px; white-space: nowrap;">Liên hệ vào giờ hành chính</p>
+                        </div>
+                    </div>
+                    <div class="header-right" style="margin-left: -130px; flex-grow: 1; text-align: left;">
+                        <h3 style="font-size: 16px; font-weight: bold;">Công ty TNHH KD-DV Quang Vinh</h3>
+                        <h2 style="font-size: 20px; font-weight: bold;">PHIẾU BIÊN NHẬN</h2>
+                        <p style="font-size: 14px;">Quý khách hài lòng hãy nói với mọi người</p>
+                        <p style="font-size: 14px;">Quý khách không hài lòng hãy nói với chúng tôi</p>
+                    </div>
+                </div>
+
+                <div class="date-hd-row">
+                    <span>HD: <span class="out_sohd" style="color: red;"></span></span>
+                    <span>Tiền Hải, ngày <span class="out_ngay_text" style="color: red;"></span></span>
+                </div>
+
+                <div class="line-item"><span class="bold">Họ và tên khách hàng :</span> <span class="out_hoten bold" style="color: red;"></span></div>
+                <div class="line-item"><span class="bold">SĐT:</span> <span class="out_sdt" style="color: red;"></span></div>
+                <div class="line-item"><span class="bold">Địa Chỉ :</span> <span class="out_diachi bold" style="color: red;"></span></div>
+                <div class="line-item">
+                    <span class="bold">Loại xe:</span> <span class="out_loaixe bold" style="color: red;"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="bold">MÀU :</span> <span class="out_mausac bold" style="color: red;"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="bold">SK :</span> <span class="out_sk bold" style="color: red;"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="bold">SM :</span> <span class="out_sm bold" style="color: red;"></span>
+                </div>
+                <div class="line-item"><span class="bold">PIN (kèm xe):</span> <span class="out_pin" style="color: red;"></span></div>
+                
+                <div style="border: none; text-align: center; font-size: 16px; font-weight: bold; margin: 8px 0;">
+                    LƯU Ý: Giao xe luôn đầy đủ phụ kiện, PIN, sạc, gương và sổ hướng dẫn
+                </div>
+
+                <div class="line-item"><span class="bold">Tổng số tiền phải thanh toán :</span> <span class="out_tongtien bold" style="color: red;"></span></div>
+                <div class="line-item"><span class="bold">Số tiền đã thanh toán:</span> <span class="out_dathanhtoan bold" style="color: red;"></span></div>
+                <div class="line-item"><span class="bold">Số tiền KH còn nợ lại:</span> <span class="out_conno bold" style="color: red;"></span></div>
+                <div class="line-item bold" style="margin-top:6px;">SỐ TK: 47110001227638 &nbsp;&nbsp;&nbsp;&nbsp; BIDV TRỊNH THỊ LAN</div>
+
+                <div class="line-item" style="margin: 10px 0;">
+                    <span class="bold">Lý do thu / Ghi chú:</span> <span class="out_ghichu bold" style="color: red;"></span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 10px; font-weight: bold;">
+                    <div class="bold">Khách hàng ký xác nhận<div class="sign-space" style="height: 100px;"></div></div>
+                    <div class="bold">CHT ký xác nhận<div class="sign-space" style="height: 100px;"></div></div>
+                </div>
+
+                <div style="background: #d1d5db; color: #000; padding: 5px 8px; margin-top: 10px; text-align: center; border: 1px solid #000;">
+                    <p style="font-weight: bold; font-size: 12px; margin: 0;">Biển số & đăng ký xe phụ thuộc vào CA khi có cửa hàng sẽ chủ động liên hệ KH qua lấy</p>
+                    <p style="font-weight: bold; font-size: 12px; margin: 2px 0 0 0;">ĐT TƯ VẤN LẤY BIỂN SỐ - ĐĂNG KÝ XE : 0904.388.299 ( gọi giờ hành chính)</p>
+                </div>
+
+                <div class="store-list-box" style="font-size: 11px; margin-top: 10px; line-height: 1.3;">
+                    <h4>HỆ THỐNG CÁC CỬA HÀNG VINFAST THUỘC HỆ THỐNG CTY QUANG VINH</h4>
+                    <p><b>VINFAST QUANG VINH 1:</b> Số 136 đường 14/10, TT Tiền Hải, Thái Bình - SĐT: 0904.947.926</p>
+                    <p><b>VINFAST QUANG VINH 2:</b> Số 15 Đường Trần Nhân Tông, Quận Kiến An, TP Hải Phòng - SĐT: 0921.116.288</p>
+                    <p><b>VINFAST QUANG VINH 3:</b> Số 54, TDP số 6, TT Cồn, Hải Hậu, Nam Định - SĐT: 0378.116.288</p>
+                    <p><b>VINFAST QUANG VINH 4:</b> 373 TDP Đồng Thịnh, TT Giao Thủy, huyện Giao Thủy, Nam Định - SĐT: 0387.116.288</p>
+                    <p><b>VINFAST QUANG VINH 5:</b> Thôn Tài Giá, xã Quỳnh Hưng, Huyện Quỳnh Phụ, Thái Bình - SĐT: 0387.116.288</p>
+                    <p><b>VINFAST QUANG VINH 6:</b> Số nhà 509 đường Long Hưng, Thị trấn Hưng Hà, Thái Bình - SĐT: 0399.116.288</p>
+                    <p><b>VINFAST QUANG VINH 7:</b> Khu Minh Tân 2, Thị Trấn Vũ Thư, Tỉnh Thái Bình - SĐT: 0372.116.288</p>
+                    <p><b>VINFAST QUANG VINH 8:</b> Gần ngã ba Trái Diêm, Số 125, đường 14/10, TT Tiền Hải, Thái Bình - SĐT: 0929.116.288</p>
+                    <p style="text-align:right; font-weight:bold; margin-top:2px;">HOTLINE : 0904.947.926</p>
+                </div>
+            </div>
+
+            <!-- ================= MẪU 2: THỎA THUẬN MẤT XE ================= -->
+            <div id="tab-2" class="paper" style="padding: 0; background: transparent; box-shadow: none; overflow: visible;">
+                <div class="contract-page active">
+                    <div class="contract-header">
+                        <div class="header-company">
+                            <p class="header-main">
+                                CÔNG TY TNHH KINH DOANH<br>
+                                DỊCH VỤ QUANG VINH
+                            </p>
+                            <p class="header-number">
+                                Số: <span class="out_sohd" style="color: red;"></span>.../2025/TT-QV
+                            </p>
+                        </div>
+                        <div class="header-national">
+                            <p class="header-main">
+                                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                            </p>
+                            <p class="header-slogan">
+                                Độc lập – Tự do – Hạnh phúc
+                            </p>
+                            <div class="header-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="contract-title">
+                        <h2>THỎA THUẬN HỖ TRỢ TÀI CHÍNH (CHÁY XE, MẤT XE)</h2>
+                        <p style="text-align: center;">(Đ/v: Khách hàng mua xe tại Hệ thống cửa hàng của Công ty TNHH Kinh doanh dịch vụ Quang Vinh bị mất xe, cháy xe)</p>
+                    </div>
+
+                    <p style="margin-top: 10px; margin-bottom: 5px; text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Căn cứ Bộ luật Dân sự 2015;</p>
+                    <p style="margin-bottom: 5px; text-align: justify;">Căn cứ Hóa đơn mua bán xe số: <b class="out_sohd" style="color: red;"></b> ngày <span class="out_ngay_text" style="color: red;"></span> giữa Công ty TNHH Kinh doanh dịch vụ Quang Vinh và Ông/ (Bà) <b class="out_hoten" style="color: red;"></b>;</p>
+                    <p style="margin-bottom: 5px; text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Căn cứ vào chính sách, tinh thần hỗ trợ khách hàng của Công ty TNHH Kinh doanh dịch vụ Quang Vinh;</p>
+                    <p style="margin-bottom: 6px; text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Căn cứ nhu cầu và thỏa thuận giữa các Bên;</p>
+                    <p style="margin-bottom: 5px; text-align: justify;">Hôm nay, ngày <span class="out_ngay_text" style="color: red;"></span>, tại địa chỉ cửa hàng của Công ty TNHH Kinh doanh dịch vụ Quang Vinh số: 125-127, đường 14/10, Xã Tiền Hải , Tỉnh Hưng Yên</p>
+                    <p style="margin-bottom: 8px;">Chúng tôi gồm:</p>
+
+                    <div class="contract-section">I. &nbsp;&nbsp;&nbsp;&nbsp; CÔNG TY TNHH KINH DOANH DỊCH VỤ QUANG VINH (“BÊN A”)</div>
+                    <p>- MST &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>1001012641</b></p>
+                    <p>- Địa chỉ trụ sở &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Nhà ông Vinh, tổ dân phố số 5, thị trấn Tiền Hải, huyện Tiền Hải, tỉnh Thái Bình</p>
+                    <p>- Đại diện theo pháp luật: Ông <b>Nguyễn Văn Vinh</b></p>
+                    <p>- Di động &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 0904 388 299 – Hotline: 0904 947 926</p>
+                    <p>- Số tài khoản &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 110001115 tại Ngân hàng Thương mại Cổ phần Công thương Việt Nam (Vietinbank) – Chi nhánh Tiền Hải, Thái Bình</p>
+                    <p>- Đại diện theo ủy quyền: Ông/ (Bà) <b>Bùi Thị Hải Yến</b> &nbsp;&nbsp;&nbsp;&nbsp; Chức vụ: KTTH Vinfast Quang Vinh 8 – Tiền Hải 2</p>
+                    <p>- Địa chỉ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Số 125-128 đường 14/410, Xã Tiền Hải, Tỉnh Hưng Yên &nbsp;&nbsp;&nbsp;&nbsp; Sinh năm: 1996</p>
+                    <p>- CC số &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 034196001536 ; cấp ngày: 19/12/2021; nơi cấp: Cục Cảnh sát quản lý hành chính về trật tự xã hội</p>
+
+                    <div class="contract-section">II. &nbsp;&nbsp;&nbsp; KHÁCH HÀNG (“BÊN B”):</div>
+                    <p>- Họ và Tên &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_hoten" style="color: red;"></b></p>
+
+                    <div class="page-number">1</div>
+                </div>
+
+                <div class="contract-page">
+                    <p>- Sinh năm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="out_ngaysinh" style="color: red;"></span></p>
+                    <p>- CC số &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_cccd" style="color: red;"></b> cấp ngày <span class="out_ngaycap" style="color: red;"></span> ; nơi cấp: <span class="out_noicap" style="color: red;"></span></p>
+                    <p>- Địa chỉ liên hệ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="out_diachi bold" style="color: red;"></span></p>
+                    <p>- Điện thoại &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_sdt" style="color: red;"></b></p>
+
+                    <div class="contract-section" style="text-align: center; margin-top: 10px; margin-bottom: 8px; text-decoration: underline;">XÉT RẰNG:</div>
+                    <p style="margin-bottom: 5px;">Bên A là chủ thể có đủ năng lực, điều kiện để thực hiện hoạt động bán xe điện ,xe máy/ xe mô tô theo quy định pháp luật.</p>
+                    <p style="margin-bottom: 6px;">Bên B là chủ thể mua xe Vinfast <b class="out_loaixe bold" style="color: red;"></b> của Bên A với các thông số sau:</p>
+                    <p>- Loại xe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_loaixe bold" style="color: red;"></b></p>
+                    <p>- Nhãn hiệu &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_nhanhieu" style="color: red;"></b></p>
+                    <p>- Số khung &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_sk bold" style="color: red;"></b></p>
+                    <p>- Số máy &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_sm bold" style="color: red;"></b></p>
+
+                    <p style="margin-top: 10px; margin-bottom: 8px;"><b>NAY, BẰNG VĂN BẢN NÀY,</b> Hai Bên tự nguyện, thỏa thuận và cam kết các nội dung sau đây:</p>
+
+                    <div class="contract-section">ĐIỀU 1: MỤC ĐÍCH CỦA THỎA THUẬN</div>
+                    <p><b>1.1.</b> Bên A đồng ý hỗ trợ một phần tài chính nếu Bên B thuộc các trường hợp mất xe là điều kiện được hỗ trợ được quy định tại Điều 2 của Thỏa thuận này.</p>
+                    <p><b>1.2.</b> Việc mất xảy ra không nằm trong chủ ý, không thuộc mong muốn và nằm ngoài khả năng kiểm soát của các bên.</p>
+                    <p><b>1.3.</b> Việc mất xảy ra trong điều kiện Bên B đã bằng mọi nỗ lực cần thiết để bảo quản xe.</p>
+                    <p><b>1.4.</b> Việc mất không nhằm mục đích vụ lợi, gian đối, cố tình chiếm đoạt hoặc nhằm mục đích vi phạm pháp luật khác.</p>
+
+                    <div class="contract-section">ĐIỀU 2: ĐIỀU KIỆN THAM GIA HỖ TRỢ</div>
+                    <p><b>2.1.</b> Bên B mua xe hoặc được sở hữu xe hợp pháp tại các cửa hàng thuộc Hệ thống của Bên A.</p>
+                    <p><b>2.2.</b> Xe bị mất, trong địa bàn đăng ký xe.</p>
+                    <p><b>2.3.</b> Xe bị mất kể từ ngày thứ 50 (năm mươi) trở lên.</p>
+                    <p><b>2.4.</b> Bên B phải cung cấp cho Bên A đầy đủ các giấy tờ, tài liệu sau đây:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(i) &nbsp;&nbsp; Tài liệu chứng minh quyền sở hữu hợp pháp đối với phương tiện bị mất.</p>
+
+                    <div class="page-number">2</div>
+                </div>
+
+                <div class="contract-page">
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(ii) &nbsp;&nbsp; Tài liệu chứng minh Bên B đã mua hoặc được sở hữu xe hợp pháp từ các cửa hàng thuộc hệ thống của Bên A, gồm: Thỏa thuận hỗ trợ tài chính, Hóa đơn VAT photo (nếu có) do Bên A cung cấp.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(iii) &nbsp; Tài liệu đăng ký xe, gồm: Giấy đăng ký xe được cấp bởi Cơ quan Công an có thẩm quyền ; Bảo hiểm xe cơ giới còn thời hạn; Giấy tờ đăng ký cư trú tại xã Quận ,Tỉnh,Thành Phố.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(iv) &nbsp; Đối với trường hợp bị mất xe, Bên B phải cung cấp thêm giấy tờ, tài liệu và chứng cứ chứng minh xe bị mất bao gồm: bản photo Đơn trình báo mất phương tiện gửi cho Cơ quan Công an có thẩm quyền; Biên bản xác nhận từ Cơ quan Công an có thẩm quyền về việc mất xe.</p>
+
+                    <div class="contract-section">ĐIỀU 3: THỜI HẠN ÁP DỤNG</div>
+                    <p>Chính sách được áp dụng trong thời hạn <b>06 (sáu) tháng</b>, kể từ thời điểm Bên B mua xe tại hệ thống cửa hàng của Bên A.</p>
+
+                    <div class="contract-section">ĐIỀU 4: HẠN MỨC HỖ TRỢ</div>
+                    <p><b>4.1.</b> Trường hợp Bên B bị mất xe, Bên A hỗ trợ tối đa <b>50% (năm mươi phần trăm)</b> giá trị xe, tối đa: <b>20.000.000 VNĐ</b> (Bằng chữ: Hai mươi triệu đồng).</p>
+                    <p>Giá trị được xác định dựa trên hóa đơn giá trị gia tăng (VAT) tại thời điểm phát hành hóa đơn.</p>
+
+                    <div class="contract-section">ĐIỀU 5: QUY TRÌNH HỖ TRỢ KHI BÊN B BỊ MẤT XE</div>
+                    <p><b>5.1.</b> Trong vòng 02 (hai) ngày kể từ ngày phát hiện mất xe, Bên B có trách nhiệm thông báo vụ việc với Hệ thống của Bên A thông qua một trong hai hình thức:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(i) &nbsp;&nbsp; Trực tiếp tại cửa hàng nơi mua xe.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(ii) &nbsp; Gọi đến Hotline: 0904 947 926.</p>
+                    <p><b>5.2.</b> Bên B có trách nhiệm cung cấp đầy đủ, trung thực giấy tờ, tài liệu, chứng cứ chứng minh.</p>
+                    <p><b>5.3.</b> Trong vòng 50 (năm mươi) ngày kể từ ngày nhận đầy đủ giấy tờ, tài liệu, chứng cứ hợp lệ do Bên B cung cấp, Bên A thực hiện hỗ trợ tài chính thông qua một trong hai hình thức:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(i) &nbsp;&nbsp; Tiền mặt, có biên nhận tiền bằng văn bản có chữ ký xác nhận của Hai Bên.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(ii) &nbsp; Chuyển khoản thông qua tài khoản ngân hàng:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Ngân hàng &nbsp;&nbsp;&nbsp;&nbsp;: .................................................................................................</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Số tài khoản &nbsp;&nbsp;: .................................................................................................</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Chủ tài khoản : .................................................................................................</p>
+
+                    <div class="page-number">3</div>
+                </div>
+
+                <div class="contract-page">
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Nội dung &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: [QUANG VINH HO TRO MAT XE HOP DONG SO <span class="out_sohd" style="color: red;"></span>]</p>
+                    <p><b>5.4.</b> Trường hợp Bên A phát hiện Bên B có hành vi gian lận, cố tình gây ra sự việc mất xe để nhận khoản hỗ trợ, ngoài việc chịu trách nhiệm theo quy định pháp luật, Bên B phải hoàn trả toàn bộ số tiền mà Bên A đã hỗ trợ và một khoản chi phí mà Bên A đã hỗ trợ Bên B tiếp nhận, xử lý hồ sơ tương ứng với số tiền: <b>2.500.000 VNĐ</b> (Bằng chữ: Hai triệu năm trăm nghìn đồng)/ một trường hợp.</p>
+                    <p><b>5.5.</b> Bên A được quyền tạm giữ toàn bộ các giấy tờ, vật dụng liên quan đến xe bị mất bao gồm nhưng không giới hạn: giấy tờ đăng ký xe; bảo hiểm xe cơ giới; chìa khóa xe trước khi Bên B nhận khoản hỗ trợ.</p>
+                    <p><b>5.6.</b> Trường hợp Bên B tìm lại được xe phải thông báo cho Bên A và có trách nhiệm hoàn trả ngay cho Bên A toàn bộ số tiền đã được hỗ trợ thông qua số tài khoản ngân hàng của Bên A hoặc bằng tiền mặt, có biên nhận tiền bằng văn bản có chữ ký xác nhận của Hai Bên. Bên A được quyền nhận lại toàn bộ giấy tờ, vật dụng liên quan đến xe mà Bên A tạm giữ sau khi hoàn trả toàn bộ số tiền mà Bên A đã hỗ trợ.</p>
+
+                    <div class="contract-section">ĐIỀU 6: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
+                    <p><b>6.1.</b> Tiếp nhận thông tin của Bên B đầy đủ, kịp thời; hướng dẫn các quy trình thủ tục trình báo Cơ quan Công an có thẩm quyền; hỗ trợ Bên B trong quá trình làm việc với Cơ quan có thẩm quyền.</p>
+                    <p><b>6.2.</b> Hỗ trợ tài chính theo thỏa thuận.</p>
+                    <p><b>6.3.</b> Có quyền từ chối hỗ trợ nếu Bên B không cung cấp đủ, trung thực giấy tờ, tài liệu, chứng cứ theo yêu cầu hoặc phát hiện có gian lận trong việc thông báo của Bên B hoặc nhận tin báo sau khoản thời hạn theo Điều 3 của Thỏa thuận.</p>
+
+                    <div class="contract-section">ĐIỀU 7: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
+                    <p><b>7.1.</b> Nhận khoản hỗ trợ trong trường hợp xe bị mất.</p>
+                    <p><b>7.2.</b> Kết hợp, thiện chí với Bên A trong quá trình xác minh thông tin, tạo mọi điều kiện về thời gian, địa điểm, phương tiện để Bên A thực hiện việc hỗ trợ tài chính.</p>
+                    <p><b>7.3.</b> Có nghĩa vụ tuân thủ thời gian báo tin.</p>
+                    <p><b>7.4.</b> Có nghĩa vụ cung cấp toàn bộ, đầy đủ, trung thực giấy tờ, tài liệu, chứng cứ theo đúng yêu cầu, hướng dẫn của Bên A.</p>
+                    <p><b>7.5.</b> Có nghĩa vụ bàn giao cho Bên A các giấy tờ, tài sản theo khoản 2.5 Điều 2 của Thỏa thuận.</p>
+                    <p><b>7.6.</b> Có nghĩa vụ hoàn trả khoản hỗ trợ khi tìm lại được xe theo khoản 5.6. Điều 5 của Thỏa thuận.</p>
+
+                    <div class="page-number">4</div>
+                </div>
+
+                <div class="contract-page">
+                    <div class="contract-section">ĐIỀU 8. ĐIỀU KHOẢN CAM KẾT CHUNG</div>
+                    <p><b>8.1.</b> Bằng sự hiểu biết tốt nhất của mình, các bên đã đọc, hiểu và tự nguyện ký kết Thỏa thuận này.</p>
+                    <p><b>8.2.</b> Thỏa thuận hỗ trợ tài chính này là một phần không thể tách rời của Hóa đơn mua bán xe số: <b class="out_sohd" style="color: red;"></b> ngày <span class="out_ngay_text" style="color: red;"></span> giữa Công ty TNHH Kinh doanh dịch vụ Quang Vinh và Ông/ (Bà) <br><b class="out_hoten" style="color: red;"></b></p>
+                    <p><b>8.3.</b> Thỏa thuận hỗ trợ tài chính này được lập thành 2 (hai) bản chính, bằng Tiếng Việt, có giá trị pháp lý như nhau. Mỗi bên giữ 01 (một) bản để thực hiện./.</p>
+
+                    <!-- CHỮ KÝ NẰM NGANG CĂN GIỮA -->
+                    <div class="sign-row-horizontal">
+                        <div class="sign-col-left" style="text-align: center;">
+                            <div class="sign-title" style="font-size: 10pt;">ĐẠI DIỆN BÊN BÁN</div>
+                            <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                        </div>
+                        <div class="sign-col-right" style="text-align: center;">
+                            <div class="sign-title" style="font-size: 10pt;">KHÁCH HÀNG</div>
+                            <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                        </div>
+                    </div>
+                    <div class="sign-space" style="height: 50px;"></div>
+
+                    <div class="page-number">5</div>
+                </div>
+            </div>
+
+            <!-- ================= MẪU 3: BIÊN BẢN BÀN GIAO XE VÀ PHỤ KIỆN ================= -->
+            <div id="tab-3" class="paper">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h2 style="font-size: 16px; font-weight: bold; text-transform: uppercase;">BIÊN BẢN BÀN GIAO XE VÀ PIN</h2>
+                    <p style="font-size: 13px; font-style: italic;">Hôm nay, ngày <span class="out_ngay_text" style="color: red;"></span>, tại Tỉnh Hưng Yên, chúng tôi gồm:</p>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.5; margin-bottom: 15px;">
+                    <div style="width: 48%;">
+                        <p><b>BÊN BÁN: CÔNG TY TNHH KINH DOANH DỊCH VỤ QUANG VINH</b></p>
+                        <p>Địa chỉ: Số 127 đường 14/10, Tiền Hải Hưng Yên</p>
+                        <p>Mã số doanh nghiệp: 1001012641 SĐT: 0929.116.288 </p>
+                        <p>Đại diện: Bùi Thị Hải Yến - Chức vụ: Kế Toán Tổng Hợp</p>
+                    </div>
+                    <div style="width: 48%; border-left: 1px solid #000; padding-left: 10px;">
+                        <p><b>KHÁCH HÀNG: <span class="out_hoten bold" style="color: red;"></span></b></p>
+                        <p>Địa chỉ: <span class="out_diachi" style="color: red;"></span></p>
+                        <p>Điện thoại: <span class="out_sdt" style="color: red;"></span></p>
+                        <p>Số CMTND/CCCD SỐ: <span class="out_cccd" style="color: red;"></span></p>
+                        <p>Cấp ngày: <span class="out_ngaycap" style="color: red;"></span> bởi <span class="out_noicap" style="color: red;"></span></p>
+                    </div>
+                </div>
+
+                <div class="bold" style="font-size: 13.5px; margin-bottom: 4px;">I. Hàng hóa bàn giao:</div>
+                <p style="font-size: 12.5px; margin-bottom: 6px;">Bên Giao bàn giao và Khách Hàng nhận bàn giao hàng hóa có thông tin nêu dưới đây.</p>
+                
+                <table class="handover-table">
+                    <thead>
+                        <tr>
+                            <th>Mẫu xe</th>
+                            <th>Số khung</th>
+                            <th>Số máy</th>
+                            <th>Tình trạng</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="out_loaixe bold" style="color: red;"></span> <span class="out_mausac bold" style="color: red;"></span></td>
+                            <td><span class="out_sk" style="color: red;"></span></td>
+                            <td><span class="out_sm" style="color: red;"></span></td>
+                            <td style="text-align:center;">Tốt/Đủ</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="bold" style="font-size: 13.5px; margin: 10px 0 4px 0;">II. Danh mục kiểm tra chi tiết:</div>
+                <table class="handover-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 6%;">STT</th>
+                            <th style="width: 50%;">Danh mục kiểm tra</th>
+                            <th style="width: 14%;">Xác nhận</th>
+                            <th style="width: 10%;">SL</th>
+                            <th style="width: 20%;">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="text-align:center;">1</td><td>Tình trạng vỏ xe, sơn bên ngoài không trầy xước</td><td style="text-align:center;">Đúng</td><td></td><td></td></tr>
+                        <tr><td style="text-align:center;">2</td><td>Bộ sạc mới 100% đang sử dụng tốt</td><td style="text-align:center;">Đúng</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">3</td><td>Gương + Bộ chìa khóa mới 100%, không nứt vỡ</td><td style="text-align:center;">Đúng</td><td style="text-align:center;">4</td><td></td></tr>
+                        <tr><td style="text-align:center;">4</td><td>Sách hướng dẫn sử dụng đạt chuẩn</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">5</td><td>Phiếu kiểm tra chất lượng xuất xưởng (COC)</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">6</td><td>Hóa đơn VAT</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">7</td><td>Pin theo xe (nếu có) mới 100% đang sử dụng tốt</td><td style="text-align:center;">CÓ</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">8</td><td>Ắc quy theo xe (nếu có) mới 100% đang sử dụng tốt</td><td style="text-align:center;">KHÔNG</td><td style="text-align:center;">5</td><td></td></tr>
+                        <tr><td style="text-align:center;">9</td><td>Số seri sạc</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td><span class="out_serisac" style="color: red;"></span></td></tr>
+                    </tbody>
+                </table>
+
+                <div class="bold" style="font-size: 13.5px; margin: 10px 0 4px 0;">III. Hướng dẫn sử dụng xe:</div>
+                <table class="handover-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">STT</th>
+                            <th style="width: 77%;">Danh mục hướng dẫn</th>
+                            <th style="width: 15%;">Xác nhận (ghi “x”)</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="text-align:center;">1</td><td>Hướng dẫn quy trình sạc và sử dụng pin, ắc quy trên xe</td><td style="text-align:center;">X</td><td></td></tr>
+                        <tr><td style="text-align:center;">2</td><td>Hướng dẫn sử dụng các tính năng trên xe</td><td style="text-align:center;">X</td><td></td></tr>
+                        <tr><td style="text-align:center;">3</td><td>Hướng dẫn về chính sách bảo hành, điều kiện bảo hành; các mốc bảo dưỡng định kỳ và điều kiện bảo hành liên quan đến mốc bảo dưỡng định kỳ. Giới thiệu về địa điểm bảo dưỡng và bảo hành xe</td><td style="text-align:center;">X</td><td></td></tr>
+                        <tr><td style="text-align:center;">4</td><td>Hướng dẫn đặt hẹn qua tổng đài hoặc qua số Hotline của cửa hàng</td><td style="text-align:center;">X</td><td></td></tr>
+                    </tbody>
+                </table>
+
+                <div style="font-size: 12.5px; margin-top: 10px;">
+                    <p><b>IV. Xác nhận:</b></p>
+                    <p>- Các bên đã cùng tiến hành kiểm tra và xác nhận hàng hóa bàn giao đầy đủ và trong tình trạng hoạt động tốt.</p>
+                    <p>- Khách hàng xác nhận đã được hướng dẫn sử dụng theo các hướng dẫn tại Mục III của Biên bản này.</p>
+                    <p style="font-style: italic; margin-top: 4px;">Biên bản bàn giao này được lập thành hai (02) bản có giá trị như nhau, mỗi bên giữ một (01) bản.</p>
+                </div>
+
+                <!-- CHỮ KÝ NẰM NGANG CĂN GIỮA -->
+                <div class="sign-row-horizontal">
+                    <div class="sign-col-left" style="text-align: center;">
+                        <div class="sign-title" style="font-size: 10pt;">ĐẠI DIỆN BÊN BÁN</div>
+                        <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                    </div>
+                    <div class="sign-col-right" style="text-align: center;">
+                        <div class="sign-title" style="font-size: 10pt;">KHÁCH HÀNG</div>
+                        <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                    </div>
+                </div>
+                <div class="sign-space" style="height: 50px;"></div>
+
+            </div>
+
+            <!-- ================= MẪU 4: PHIẾU BIÊN NHẬN CH5 ================= -->
+            <div id="tab-4" class="paper">
+                <div class="header-2col" style="display: flex; align-items: center; justify-content: flex-start; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin-bottom: 8px;">
+                    <div style="display: inline-block; width: max-content; flex-shrink: 0;">
+                        <div style="border: 1.5px solid #000; background-color: #dcdcdc; padding: 6px 8px; text-align: left; margin-left: 0;">
+                            <h3 class="out_ten_ch" style="font-size: 13.5px; font-weight: bold; white-space: nowrap;">QUANG VINH 5</h3>
+                            <p class="out_dc_ch" style="font-size: 12px; white-space: nowrap;">VĨNH TRÀ, HƯNG PHÚ, HƯNG YÊN</p>
+                            <p style="font-size: 12px; white-space: nowrap;">ĐT: <span class="out_sdt_ch">0981.33.66.86</span></p>
+                            <p style="font-size: 11.5px; white-space: nowrap;">Liên hệ vào giờ hành chính</p>
+                        </div>
+                    </div>
+                    <div class="header-right" style="margin-left: -130px; flex-grow: 1; text-align: left;">
+                        <h3 style="font-size: 16px; font-weight: bold;">Công ty TNHHKD-DV Quang Vinh</h3>
+                        <h2 style="font-size: 20px; font-weight: bold;">PHIẾU BIÊN NHẬN</h2>
+                        <p style="font-size: 14px;">Qúy khách hài lòng hãy nói với mọi người</p>
+                        <p style="font-size: 14px;">Quý khách không hài lòng hãy nói với chúng tôi</p>
+                    </div>
+                </div>
+
+                <div class="date-hd-row">
+                    <span>SHĐ : <span class="out_sohd" style="color: red;"></span></span>
+                    <span>Hưng Phú, ngày <span class="out_ngay_day" style="color: red;"></span></span>
+                </div>
+
+                <div class="line-item" style="margin-bottom:6px; font-size: 14px;">
+                    Họ và tên khách hàng: <span class="out_hoten bold" style="color: red;"></span>
+                </div>
+                <div class="line-item" style="margin-bottom:6px; font-size: 14px;">
+                    Địa chỉ: <span class="out_diachi bold" style="color: red;"></span> 
+                    <span style="display:inline-block; margin-left: 15px;">Điện thoại: <span class="out_sdt bold" style="color: red;"></span></span>
+                </div>
+                <div class="line-item" style="margin-bottom:6px; font-size: 14px;">
+                    Loại xe: <span class="out_loaixe bold" style="color: red;"></span> 
+                    <span style="display:inline-block; margin-left: 5px;">Màu sắc: <span class="out_mausac bold" style="color: red;"></span></span>
+                    <span style="display:inline-block; margin-left: 5px;">Số khung : <span class="out_sk bold" style="color: red;"></span></span>
+                    <span style="display:inline-block; margin-left: 5px;">Số máy: <span class="out_sm bold" style="color: red;"></span></span>
+                </div>
+
+                <div class="line-item" style="margin-bottom:6px; font-size: 14px;">Số tiền KH phải thanh toán: <span class="out_tongtien bold" style="color: red;"></span></div>
+                <div class="line-item" style="margin-bottom:6px; font-size: 14px;">Tổng số tiền đã thanh toán: <span class="out_dathanhtoan bold" style="color: red;"></span></div>
+                <div class="line-item" style="margin-bottom:6px; font-size: 14px;">KH còn nợ: <span class="out_conno bold" style="color: red;"></span></div>
+
+                <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 10px; font-weight: bold;">
+                    <div class="bold">Khách hàng ký xác nhận<div class="sign-space" style="height: 100px;"></div></div>
+                    <div class="bold">KTTH ký xác nhận<div class="sign-space" style="height: 100px;"></div></div>
+                    <div class="bold">CHT ký xác nhận<div class="sign-space" style="height: 100px;"></div></div>
+                </div>
+
+                <div class="promo-box-ch5" style="margin-top: 10px; font-size: 14px; line-height: 1.45;">
+                    <h4 style="text-align: center; font-size: 15.5px; font-weight: bold; margin-bottom: 6px;">Cty QUANG VINH: KHUYẾN MẠI CHO KH MUA XE MÁY TRÊN 100cc tháng 01/2025</h4>
+                    <div style="font-weight: bold; padding-left: 5px;">
+                        <p>¢01 Mũ bảo hiểm cty  Gía trị  ....................................................................................: 300.000 đ</p>
+                        <p>¢ 03 Lon dầu chính hãng Giá trị .................................................................................: 300.000 đ</p>
+                        <p>¢ 03 Năm bảo dưỡng theo tiêu chuẩn hãng  CTYQuang Vinh KM 3 năm BD MP giá trị :  900.000 đ</p>
+                        <p>¢ 02 Lần bảo dưỡng toàn bộ xe khác miễn phí Giá trị................................................: 200.000 đ</p>
+                    </div>
+                    <div style="background-color: #d9d9d9; padding: 4px 8px; font-weight: bold; font-size: 15.5px; margin-top: 4px; display: flex; border-radius: 2px;">
+                        <span style="flex: 1;">¢ Tổng giá trị cty Quang Vinh khuyến mại lên tới.</span>
+                        <span style="width: 150px;">: 1.650.000 đ</span>
+                    </div>
+                    <div style="padding-left: 30px; margin-top: 6px; font-weight: bold;">
+                        <p>* Hỗ trợ khách hàng   :   Cháy xe mất xe</p>
+                        <p>* Hỗ trợ khách hàng   :   Đổi xe cũ lấy xe mới</p>
+                        <p>* Hỗ trợ khách hàng   :   Mua xe trả góp</p>
+                    </div>
+                </div>
+
+                <div class="store-list-ch5" style="margin-top: 15px; font-size: 13.5px; line-height: 1.45;">
+                    <h4 style="text-align: center; font-size: 15.5px; font-weight: bold; margin-bottom: 8px;">HỆ THỐNG CÁC CỬA HÀNG THUỘC HỆ THỐNG CTY QUANG VINH</h4>
+                    <div style="font-weight: bold;">
+                        <p>QUANG VINH 1: HONDA.........................Đ/C :TTTH-TB Cách ngã 3 trái diêm 100m   ĐT : 0973.393.229</p>
+                        <p>QUANG VINH 2: YAMAHA.......................Đ/C :TTTH -TB Cách ngã 3 trái diêm 300m  ĐT : 0973.393.229</p>
+                        <p>QUANG VINH 3: xe 50cc SYM.KYMCO.....Đ/C:TTTH -TB  Cách ngã 3 trái diêm 300m  ĐT : 0973.393.229</p>
+                        <p>QUANG VINH 4: SUZUKI .........................Đ/C: TTTH -TB Cách ngã 3 trái diêm 100m   ĐT : 0973.393.229</p>
+                        <p>QUANG VINH 5 : HONDA.YAMAHA SYM.Đ/C Thôn Vĩnh Trà Nam Trung TH-TB                 ĐT : 0973.393.229</p>
+                        <p>QUANG VINH 6: XE ĐIỆN  .YAMAHA.        Đ/C : TTTH-TB Cách ngã 3 trái diêm 300m  ĐT : 0973.393.229</p>
+                    </div>
+                    
+                    <p style="text-align: center; font-weight: bold; margin-top: 12px; font-size: 14px;">TƯ VẤN :Bán buôn  bán lẻ BÁO GIÁ : PHỤ TÙNG dịch vụ ĐT : 0973.393.229: CỨU HỘ : 0973.393.229</p>
+                    
+                    <div style="background-color: #d9d9d9; text-align: center; font-weight: bold; font-size: 16px; padding: 5px; margin-top: 12px; border-radius: 2px;">
+                        LƯU Ý : Những số ĐT  trên Qúy khách vui lòng gọi vào giờ hành chính
+                    </div>
+                    
+                    <p style="text-align: center; font-weight: bold; font-size: 15px; margin-top: 12px;">HOTTLINE : 0981336686</p>
+                </div>
+            </div>
+
+            <!-- ================= MẪU 5: THỎA THUẬN 5 TRANG (COPY) ================= -->
+            <div id="tab-5" class="paper" style="padding: 0; background: transparent; box-shadow: none; overflow: visible;">
+                <div class="contract-page active">
+                    <div class="contract-header">
+                        <div class="header-company">
+                            <p class="header-main">
+                                CÔNG TY TNHH KINH DOANH<br>
+                                DỊCH VỤ QUANG VINH
+                            </p>
+                            <p class="header-number">
+                                Số: <span class="out_sohd" style="color: red;"></span>.../2025/TT-QV
+                            </p>
+                        </div>
+                        <div class="header-national">
+                            <p class="header-main">
+                                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                            </p>
+                            <p class="header-slogan">
+                                Độc lập – Tự do – Hạnh phúc
+                            </p>
+                            <div class="header-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="contract-title">
+                        <h2>THỎA THUẬN HỖ TRỢ TÀI CHÍNH (CHÁY XE, MẤT XE)</h2>
+                        <p style="text-align: center;">(Đ/v: Khách hàng mua xe tại Hệ thống cửa hàng của Công ty TNHH Kinh doanh dịch vụ Quang Vinh bị mất xe, cháy xe)</p>
+                    </div>
+
+                    <p style="margin-top: 10px; margin-bottom: 5px; text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Căn cứ Bộ luật Dân sự 2015;</p>
+                    <p style="margin-bottom: 5px; text-align: justify;">Căn cứ Hóa đơn mua bán xe số: <b class="out_sohd" style="color: red;"></b> ngày <span class="out_ngay_text" style="color: red;"></span> giữa Công ty TNHH Kinh doanh dịch vụ Quang Vinh và Ông/ (Bà) <b class="out_hoten" style="color: red;"></b>;</p>
+                    <p style="margin-bottom: 5px; text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Căn cứ vào chính sách, tinh thần hỗ trợ khách hàng của Công ty TNHH Kinh doanh dịch vụ Quang Vinh;</p>
+                    <p style="margin-bottom: 6px; text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Căn cứ nhu cầu và thỏa thuận giữa các Bên;</p>
+                    <p style="margin-bottom: 5px; text-align: justify;">Hôm nay, ngày <span class="out_ngay_text" style="color: red;"></span>, tại địa chỉ cửa hàng của Công ty TNHH Kinh doanh dịch vụ Quang Vinh số: 125-127, đường 14/10, Xã Tiền Hải , Tỉnh Hưng Yên</p>
+                    <p style="margin-bottom: 8px;">Chúng tôi gồm:</p>
+
+                    <div class="contract-section">I. &nbsp;&nbsp;&nbsp;&nbsp; CÔNG TY TNHH KINH DOANH DỊCH VỤ QUANG VINH (“BÊN A”)</div>
+                    <p>- MST &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>1001012641</b></p>
+                    <p>- Địa chỉ trụ sở &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Nhà ông Vinh, tổ dân phố số 5, thị trấn Tiền Hải, huyện Tiền Hải, tỉnh Thái Bình</p>
+                    <p>- Đại diện theo pháp luật: Ông <b>Nguyễn Văn Vinh</b></p>
+                    <p>- Di động &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 0904 388 299 – Hotline: 0904 947 926</p>
+                    <p>- Số tài khoản &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 110001115 tại Ngân hàng Thương mại Cổ phần Công thương Việt Nam (Vietinbank) – Chi nhánh Tiền Hải, Thái Bình</p>
+                    <p>- Đại diện theo ủy quyền: Ông/ (Bà) <b>Nguyễn Văn Trìu</b> &nbsp;&nbsp;&nbsp;&nbsp; Chức vụ: KTTH Vinfast Quang Vinh 8 – Tiền Hải 2</p>
+                    <p>- Địa chỉ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Số 125-128 đường 14/410, Xã Tiền Hải, Tỉnh Hưng Yên &nbsp;&nbsp;&nbsp;&nbsp; Sinh năm: 1996</p>
+                    <p>- CC số &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 034196001536 ; cấp ngày: 19/12/2021; nơi cấp: Cục Cảnh sát quản lý hành chính về trật tự xã hội</p>
+
+                    <div class="contract-section">II. &nbsp;&nbsp;&nbsp; KHÁCH HÀNG (“BÊN B”):</div>
+                    <p>- Họ và Tên &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_hoten" style="color: red;"></b></p>
+
+                    <div class="page-number">1</div>
+                </div>
+
+                <div class="contract-page">
+                    <p>- Sinh năm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="out_ngaysinh" style="color: red;"></span></p>
+                    <p>- CC số &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_cccd" style="color: red;"></b> cấp ngày <span class="out_ngaycap" style="color: red;"></span> ; nơi cấp: <span class="out_noicap" style="color: red;"></span></p>
+                    <p>- Địa chỉ liên hệ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="out_diachi bold" style="color: red;"></span></p>
+                    <p>- Điện thoại &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_sdt" style="color: red;"></b></p>
+
+                    <div class="contract-section" style="text-align: center; margin-top: 10px; margin-bottom: 8px; text-decoration: underline;">XÉT RẰNG:</div>
+                    <p style="margin-bottom: 5px;">Bên A là chủ thể có đủ năng lực, điều kiện để thực hiện hoạt động bán xe điện ,xe máy/ xe mô tô theo quy định pháp luật.</p>
+                    <p style="margin-bottom: 6px;">Bên B là chủ thể mua xe Vinfast <b class="out_loaixe bold" style="color: red;"></b> của Bên A với các thông số sau:</p>
+                    <p>- Loại xe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_loaixe bold" style="color: red;"></b></p>
+                    <p>- Nhãn hiệu &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_nhanhieu" style="color: red;"></b></p>
+                    <p>- Số khung &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_sk bold" style="color: red;"></b></p>
+                    <p>- Số máy &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b class="out_sm bold" style="color: red;"></b></p>
+
+                    <p style="margin-top: 10px; margin-bottom: 8px;"><b>NAY, BẰNG VĂN BẢN NÀY,</b> Hai Bên tự nguyện, thỏa thuận và cam kết các nội dung sau đây:</p>
+
+                    <div class="contract-section">ĐIỀU 1: MỤC ĐÍCH CỦA THỎA THUẬN</div>
+                    <p><b>1.1.</b> Bên A đồng ý hỗ trợ một phần tài chính nếu Bên B thuộc các trường hợp mất xe là điều kiện được hỗ trợ được quy định tại Điều 2 của Thỏa thuận này.</p>
+                    <p><b>1.2.</b> Việc mất xảy ra không nằm trong chủ ý, không thuộc mong muốn và nằm ngoài khả năng kiểm soát của các bên.</p>
+                    <p><b>1.3.</b> Việc mất xảy ra trong điều kiện Bên B đã bằng mọi nỗ lực cần thiết để bảo quản xe.</p>
+                    <p><b>1.4.</b> Việc mất không nhằm mục đích vụ lợi, gian đối, cố tình chiếm đoạt hoặc nhằm mục đích vi phạm pháp luật khác.</p>
+
+                    <div class="contract-section">ĐIỀU 2: ĐIỀU KIỆN THAM GIA HỖ TRỢ</div>
+                    <p><b>2.1.</b> Bên B mua xe hoặc được sở hữu xe hợp pháp tại các cửa hàng thuộc Hệ thống của Bên A.</p>
+                    <p><b>2.2.</b> Xe bị mất, trong địa bàn đăng ký xe.</p>
+                    <p><b>2.3.</b> Xe bị mất kể từ ngày thứ 50 (năm mươi) trở lên.</p>
+                    <p><b>2.4.</b> Bên B phải cung cấp cho Bên A đầy đủ các giấy tờ, tài liệu sau đây:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(i) &nbsp;&nbsp; Tài liệu chứng minh quyền sở hữu hợp pháp đối với phương tiện bị mất.</p>
+
+                    <div class="page-number">2</div>
+                </div>
+
+                <div class="contract-page">
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(ii) &nbsp;&nbsp; Tài liệu chứng minh Bên B đã mua hoặc được sở hữu xe hợp pháp từ các cửa hàng thuộc hệ thống của Bên A, gồm: Thỏa thuận hỗ trợ tài chính, Hóa đơn VAT photo (nếu có) do Bên A cung cấp.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(iii) &nbsp; Tài liệu đăng ký xe, gồm: Giấy đăng ký xe được cấp bởi Cơ quan Công an có thẩm quyền ; Bảo hiểm xe cơ giới còn thời hạn; Giấy tờ đăng ký cư trú tại xã Quận ,Tỉnh,Thành Phố.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(iv) &nbsp; Đối với trường hợp bị mất xe, Bên B phải cung cấp thêm giấy tờ, tài liệu và chứng cứ chứng minh xe bị mất bao gồm: bản photo Đơn trình báo mất phương tiện gửi cho Cơ quan Công an có thẩm quyền; Biên bản xác nhận từ Cơ quan Công an có thẩm quyền về việc mất xe.</p>
+
+                    <div class="contract-section">ĐIỀU 3: THỜI HẠN ÁP DỤNG</div>
+                    <p>Chính sách được áp dụng trong thời hạn <b>06 (sáu) tháng</b>, kể từ thời điểm Bên B mua xe tại hệ thống cửa hàng của Bên A.</p>
+
+                    <div class="contract-section">ĐIỀU 4: HẠN MỨC HỖ TRỢ</div>
+                    <p><b>4.1.</b> Trường hợp Bên B bị mất xe, Bên A hỗ trợ tối đa <b>50% (năm mươi phần trăm)</b> giá trị xe, tối đa: <b>20.000.000 VNĐ</b> (Bằng chữ: Hai mươi triệu đồng).</p>
+                    <p>Giá trị được xác định dựa trên hóa đơn giá trị gia tăng (VAT) tại thời điểm phát hành hóa đơn.</p>
+
+                    <div class="contract-section">ĐIỀU 5: QUY TRÌNH HỖ TRỢ KHI BÊN B BỊ MẤT XE</div>
+                    <p><b>5.1.</b> Trong vòng 02 (hai) ngày kể từ ngày phát hiện mất xe, Bên B có trách nhiệm thông báo vụ việc với Hệ thống của Bên A thông qua một trong hai hình thức:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(i) &nbsp;&nbsp; Trực tiếp tại cửa hàng nơi mua xe.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(ii) &nbsp; Gọi đến Hotline: 0904 947 926.</p>
+                    <p><b>5.2.</b> Bên B có trách nhiệm cung cấp đầy đủ, trung thực giấy tờ, tài liệu, chứng cứ chứng minh.</p>
+                    <p><b>5.3.</b> Trong vòng 50 (năm mươi) ngày kể từ ngày nhận đầy đủ giấy tờ, tài liệu, chứng cứ hợp lệ do Bên B cung cấp, Bên A thực hiện hỗ trợ tài chính thông qua một trong hai hình thức:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(i) &nbsp;&nbsp; Tiền mặt, có biên nhận tiền bằng văn bản có chữ ký xác nhận của Hai Bên.</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;(ii) &nbsp; Chuyển khoản thông qua tài khoản ngân hàng:</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Ngân hàng &nbsp;&nbsp;&nbsp;&nbsp;: .................................................................................................</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Số tài khoản &nbsp;&nbsp;: .................................................................................................</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Chủ tài khoản : .................................................................................................</p>
+
+                    <div class="page-number">3</div>
+                </div>
+
+                <div class="contract-page">
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Nội dung &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: [QUANG VINH HO TRO MAT XE HOP DONG SO <span class="out_sohd" style="color: red;"></span>]</p>
+                    <p><b>5.4.</b> Trường hợp Bên A phát hiện Bên B có hành vi gian lận, cố tình gây ra sự việc mất xe để nhận khoản hỗ trợ, ngoài việc chịu trách nhiệm theo quy định pháp luật, Bên B phải hoàn trả toàn bộ số tiền mà Bên A đã hỗ trợ và một khoản chi phí mà Bên A đã hỗ trợ Bên B tiếp nhận, xử lý hồ sơ tương ứng với số tiền: <b>2.500.000 VNĐ</b> (Bằng chữ: Hai triệu năm trăm nghìn đồng)/ một trường hợp.</p>
+                    <p><b>5.5.</b> Bên A được quyền tạm giữ toàn bộ các giấy tờ, vật dụng liên quan đến xe bị mất bao gồm nhưng không giới hạn: giấy tờ đăng ký xe; bảo hiểm xe cơ giới; chìa khóa xe trước khi Bên B nhận khoản hỗ trợ.</p>
+                    <p><b>5.6.</b> Trường hợp Bên B tìm lại được xe phải thông báo cho Bên A và có trách nhiệm hoàn trả ngay cho Bên A toàn bộ số tiền đã được hỗ trợ thông qua số tài khoản ngân hàng của Bên A hoặc bằng tiền mặt, có biên nhận tiền bằng văn bản có chữ ký xác nhận của Hai Bên. Bên A được quyền nhận lại toàn bộ giấy tờ, vật dụng liên quan đến xe mà Bên A tạm giữ sau khi hoàn trả toàn bộ số tiền mà Bên A đã hỗ trợ.</p>
+
+                    <div class="contract-section">ĐIỀU 6: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
+                    <p><b>6.1.</b> Tiếp nhận thông tin của Bên B đầy đủ, kịp thời; hướng dẫn các quy trình thủ tục trình báo Cơ quan Công an có thẩm quyền; hỗ trợ Bên B trong quá trình làm việc với Cơ quan có thẩm quyền.</p>
+                    <p><b>6.2.</b> Hỗ trợ tài chính theo thỏa thuận.</p>
+                    <p><b>6.3.</b> Có quyền từ chối hỗ trợ nếu Bên B không cung cấp đủ, trung thực giấy tờ, tài liệu, chứng cứ theo yêu cầu hoặc phát hiện có gian lận trong việc thông báo của Bên B hoặc nhận tin báo sau khoản thời hạn theo Điều 3 của Thỏa thuận.</p>
+
+                    <div class="contract-section">ĐIỀU 7: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
+                    <p><b>7.1.</b> Nhận khoản hỗ trợ trong trường hợp xe bị mất.</p>
+                    <p><b>7.2.</b> Kết hợp, thiện chí với Bên A trong quá trình xác minh thông tin, tạo mọi điều kiện về thời gian, địa điểm, phương tiện để Bên A thực hiện việc hỗ trợ tài chính.</p>
+                    <p><b>7.3.</b> Có nghĩa vụ tuân thủ thời gian báo tin.</p>
+                    <p><b>7.4.</b> Có nghĩa vụ cung cấp toàn bộ, đầy đủ, trung thực giấy tờ, tài liệu, chứng cứ theo đúng yêu cầu, hướng dẫn của Bên A.</p>
+                    <p><b>7.5.</b> Có nghĩa vụ bàn giao cho Bên A các giấy tờ, tài sản theo khoản 2.5 Điều 2 của Thỏa thuận.</p>
+                    <p><b>7.6.</b> Có nghĩa vụ hoàn trả khoản hỗ trợ khi tìm lại được xe theo khoản 5.6. Điều 5 của Thỏa thuận.</p>
+
+                    <div class="page-number">4</div>
+                </div>
+
+                <div class="contract-page">
+                    <div class="contract-section">ĐIỀU 8. ĐIỀU KHOẢN CAM KẾT CHUNG</div>
+                    <p><b>8.1.</b> Bằng sự hiểu biết tốt nhất của mình, các bên đã đọc, hiểu và tự nguyện ký kết Thỏa thuận này.</p>
+                    <p><b>8.2.</b> Thỏa thuận hỗ trợ tài chính này là một phần không thể tách rời của Hóa đơn mua bán xe số: <b class="out_sohd" style="color: red;"></b> ngày <span class="out_ngay_text" style="color: red;"></span> giữa Công ty TNHH Kinh doanh dịch vụ Quang Vinh và Ông/ (Bà) <br><b class="out_hoten" style="color: red;"></b></p>
+                    <p><b>8.3.</b> Thỏa thuận hỗ trợ tài chính này được lập thành 2 (hai) bản chính, bằng Tiếng Việt, có giá trị pháp lý như nhau. Mỗi bên giữ 01 (một) bản để thực hiện./.</p>
+
+                    <!-- CHỮ KÝ NẰM NGANG CĂN GIỮA -->
+                    <div class="sign-row-horizontal">
+                        <div class="sign-col-left" style="text-align: center;">
+                            <div class="sign-title" style="font-size: 10pt;">ĐẠI DIỆN BÊN BÁN</div>
+                            <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                        </div>
+                        <div class="sign-col-right" style="text-align: center;">
+                            <div class="sign-title" style="font-size: 10pt;">KHÁCH HÀNG</div>
+                            <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                        </div>
+                    </div>
+                    <div class="sign-space" style="height: 50px;"></div>
+
+                    <div class="page-number">5</div>
+                </div>
+            </div>
+
+            <!-- ================= MẪU 6: BIÊN BẢN BÀN GIAO XE VÀ PHỤ KIỆN (COPY) ================= -->
+            <div id="tab-6" class="paper">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h2 style="font-size: 16px; font-weight: bold; text-transform: uppercase;">BIÊN BẢN BÀN GIAO XE VÀ PIN</h2>
+                    <p style="font-size: 13px; font-style: italic;">Hôm nay, ngày <span class="out_ngay_text" style="color: red;"></span>, tại Tỉnh Hưng Yên, chúng tôi gồm:</p>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.5; margin-bottom: 15px;">
+                    <div style="width: 48%;">
+                        <p><b>BÊN BÁN: CÔNG TY TNHH KINH DOANH DỊCH VỤ QUANG VINH</b></p>
+                        <p>Địa chỉ: Đường 221A Thôn Vĩnh Trà Xã Hưng Phú Tỉnh Hưng Yên</p>
+                        <p>Mã số doanh nghiệp: 1001012641 SĐT: 0981.33.66.86</p>
+                        <p>Đại diện: Nguyễn Văn Trìu - Chức vụ: Quản Lý</p>
+                    </div>
+                    <div style="width: 48%; border-left: 1px solid #000; padding-left: 10px;">
+                        <p><b>KHÁCH HÀNG: <span class="out_hoten bold" style="color: red;"></span></b></p>
+                        <p>Địa chỉ: <span class="out_diachi" style="color: red;"></span></p>
+                        <p>Điện thoại: <span class="out_sdt" style="color: red;"></span></p>
+                        <p>Số CMTND/CCCD SỐ: <span class="out_cccd" style="color: red;"></span></p>
+                        <p>Cấp ngày: <span class="out_ngaycap" style="color: red;"></span> bởi <span class="out_noicap" style="color: red;"></span></p>
+                    </div>
+                </div>
+
+                <div class="bold" style="font-size: 13.5px; margin-bottom: 4px;">I. Hàng hóa bàn giao:</div>
+                <p style="font-size: 12.5px; margin-bottom: 6px;">Bên Giao bàn giao và Khách Hàng nhận bàn giao hàng hóa có thông tin nêu dưới đây.</p>
+                
+                <table class="handover-table">
+                    <thead>
+                        <tr>
+                            <th>Mẫu xe</th>
+                            <th>Số khung</th>
+                            <th>Số máy</th>
+                            <th>Tình trạng</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="out_loaixe bold" style="color: red;"></span> <span class="out_mausac bold" style="color: red;"></span></td>
+                            <td><span class="out_sk" style="color: red;"></span></td>
+                            <td><span class="out_sm" style="color: red;"></span></td>
+                            <td style="text-align:center;">Tốt/Đủ</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="bold" style="font-size: 13.5px; margin: 10px 0 4px 0;">II. Danh mục kiểm tra chi tiết:</div>
+                <table class="handover-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 6%;">STT</th>
+                            <th style="width: 50%;">Danh mục kiểm tra</th>
+                            <th style="width: 14%;">Xác nhận</th>
+                            <th style="width: 10%;">SL</th>
+                            <th style="width: 20%;">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="text-align:center;">1</td><td>Tình trạng vỏ xe, sơn bên ngoài không trầy xước</td><td style="text-align:center;">Đúng</td><td></td><td></td></tr>
+                        <tr><td style="text-align:center;">2</td><td>Bộ sạc mới 100% đang sử dụng tốt</td><td style="text-align:center;">Đúng</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">3</td><td>Gương + Bộ chìa khóa mới 100%, không nứt vỡ</td><td style="text-align:center;">Đúng</td><td style="text-align:center;">4</td><td></td></tr>
+                        <tr><td style="text-align:center;">4</td><td>Sách hướng dẫn sử dụng đạt chuẩn</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">5</td><td>Phiếu kiểm tra chất lượng xuất xưởng (COC)</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">6</td><td>Hóa đơn VAT</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">7</td><td>Pin theo xe (nếu có) mới 100% đang sử dụng tốt</td><td style="text-align:center;">CÓ</td><td style="text-align:center;">1</td><td></td></tr>
+                        <tr><td style="text-align:center;">8</td><td>Ắc quy theo xe (nếu có) mới 100% đang sử dụng tốt</td><td style="text-align:center;">KHÔNG</td><td style="text-align:center;">5</td><td></td></tr>
+                        <tr><td style="text-align:center;">9</td><td>Số seri sạc</td><td style="text-align:center;">đạt chuẩn</td><td style="text-align:center;">1</td><td><span class="out_serisac" style="color: red;"></span></td></tr>
+                    </tbody>
+                </table>
+
+                <div class="bold" style="font-size: 13.5px; margin: 10px 0 4px 0;">III. Hướng dẫn sử dụng xe:</div>
+                <table class="handover-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">STT</th>
+                            <th style="width: 77%;">Danh mục hướng dẫn</th>
+                            <th style="width: 15%;">Xác nhận (ghi “x”)</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="text-align:center;">1</td><td>Hướng dẫn quy trình sạc và sử dụng pin, ắc quy trên xe</td><td style="text-align:center;">X</td><td></td></tr>
+                        <tr><td style="text-align:center;">2</td><td>Hướng dẫn sử dụng các tính năng trên xe</td><td style="text-align:center;">X</td><td></td></tr>
+                        <tr><td style="text-align:center;">3</td><td>Hướng dẫn về chính sách bảo hành, điều kiện bảo hành; các mốc bảo dưỡng định kỳ và điều kiện bảo hành liên quan đến mốc bảo dưỡng định kỳ. Giới thiệu về địa điểm bảo dưỡng và bảo hành xe</td><td style="text-align:center;">X</td><td></td></tr>
+                        <tr><td style="text-align:center;">4</td><td>Hướng dẫn đặt hẹn qua tổng đài hoặc qua số Hotline của cửa hàng</td><td style="text-align:center;">X</td><td></td></tr>
+                    </tbody>
+                </table>
+
+                <div style="font-size: 12.5px; margin-top: 10px;">
+                    <p><b>IV. Xác nhận:</b></p>
+                    <p>- Các bên đã cùng tiến hành kiểm tra và xác nhận hàng hóa bàn giao đầy đủ và trong tình trạng hoạt động tốt.</p>
+                    <p>- Khách hàng xác nhận đã được hướng dẫn sử dụng theo các hướng dẫn tại Mục III của Biên bản này.</p>
+                    <p style="font-style: italic; margin-top: 4px;">Biên bản bàn giao này được lập thành hai (02) bản có giá trị như nhau, mỗi bên giữ một (01) bản.</p>
+                </div>
+                <!-- CHỮ KÝ NẰM NGANG CĂN GIỮA -->
+                <div class="sign-row-horizontal">
+                    <div class="sign-col-left" style="text-align: center;">
+                        <div class="sign-title" style="font-size: 10pt;">ĐẠI DIỆN BÊN BÁN</div>
+                        <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                    </div>
+                    <div class="sign-col-right" style="text-align: center;">
+                        <div class="sign-title" style="font-size: 10pt;">KHÁCH HÀNG</div>
+                        <div class="sign-sub" style="font-size: 9pt;">(Ký, ghi rõ họ tên)</div>
+                    </div>
+                </div>
+                <div class="sign-space" style="height: 50px;"></div>
+            </div>
+
+            <!-- ================= MẪU 7: IN MÃ VẬN ĐƠN (1/2 TRANG A4) ================= -->
+            <div id="tab-7" class="paper">
+                <!-- Nửa trên A4 -->
+                <div class="vandon-half-page">
+                    <table class="vandon-table">
+                        <tr>
+                            <td colspan="2" class="vd-header-cell">1. NGƯỜI GỬI</td>
+                            <td class="vd-header-cell">EBILL</td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Họ tên:</td>
+                            <td class="vd-val-cell"><b id="out_vd_nguoigui_ten">Nguyễn Quang Dự</b></td>
+                            <td rowspan="3" class="vd-ebill-cell">
+                                <span id="out_vd_ebill">ES683901704VN</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Địa chỉ:</td>
+                            <td class="vd-val-cell"><span id="out_vd_nguoigui_diachi">Nhà Ông Vinh, Tổ Dân Phố Số 5, Xã Tiền Hải, Hưng Yên</span></td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">SĐT:</td>
+                            <td class="vd-val-cell"><span id="out_vd_nguoigui_sdt">0988.057.750 - 0868.268.862</span></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="vd-header-cell">2. NGƯỜI NHẬN</td>
+                            <td class="vd-header-cell">NOTE</td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Họ tên:</td>
+                            <td class="vd-val-cell"><b id="out_vd_nguoinhan_ten">Phòng BO</b></td>
+                            <td rowspan="3" class="vd-note-cell">
+                                <span id="out_vd_note">PHỤ LỤC HỢP ĐỒNG TÍN DỤNG</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Địa chỉ:</td>
+                            <td class="vd-val-cell"><span id="out_vd_nguoinhan_diachi">Tầng 3_Tòa nhà VIT_519 Kim Mã, Phường Giảng Võ, Hà Nội</span></td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">SĐT:</td>
+                            <td class="vd-val-cell"><span id="out_vd_nguoinhan_sdt">1900558854</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Nửa dưới A4 -->
+                <div class="vandon-half-page">
+                    <table class="vandon-table">
+                        <tr>
+                            <td colspan="2" class="vd-header-cell">1. NGƯỜI GỬI</td>
+                            <td class="vd-header-cell">EBILL</td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Họ tên:</td>
+                            <td class="vd-val-cell"><b class="out_vd_nguoigui_ten">Nguyễn Quang Dự</b></td>
+                            <td rowspan="3" class="vd-ebill-cell">
+                                <span class="out_vd_ebill">ES683901704VN</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Địa chỉ:</td>
+                            <td class="vd-val-cell"><span class="out_vd_nguoigui_diachi">Nhà Ông Vinh, Tổ Dân Phố Số 5, Xã Tiền Hải, Hưng Yên</span></td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">SĐT:</td>
+                            <td class="vd-val-cell"><span class="out_vd_nguoigui_sdt">0988.057.750 - 0868.268.862</span></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="vd-header-cell">2. NGƯỜI NHẬN</td>
+                            <td class="vd-header-cell">NOTE</td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Họ tên:</td>
+                            <td class="vd-val-cell"><b class="out_vd_nguoinhan_ten">Phòng BO</b></td>
+                            <td rowspan="3" class="vd-note-cell">
+                                <span class="out_vd_note">PHỤ LỤC HỢP ĐỒNG TÍN DỤNG</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">Địa chỉ:</td>
+                            <td class="vd-val-cell"><span class="out_vd_nguoinhan_diachi">Tầng 3_Tòa nhà VIT_519 Kim Mã, Phường Giảng Võ, Hà Nội</span></td>
+                        </tr>
+                        <tr>
+                            <td class="vd-label-cell">SĐT:</td>
+                            <td class="vd-val-cell"><span class="out_vd_nguoinhan_sdt">1900558854</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= MẪU 8: QR HD SAISON ================= -->
+            <div id="tab-8" class="paper" style="padding: 20px;">
+                <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
+                    <h2 style="margin: 0 0 5px 0; color: #d32f2f; text-align: center; text-transform: uppercase; font-size: 20px;">QR HD SAISON</h2>
+                    <div style="text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; border-bottom: 2px solid #d32f2f; padding-bottom: 10px;">Công cụ tạo mã thanh toán nhanh</div>
+
+                    <div id="qr-result" style="text-align: center; margin-top: 20px; display: none; background: #fffdfd; padding: 15px; border-radius: 8px; border: 1px dashed #d32f2f;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">
+                            Ảnh này gồm QR + thông tin khách hàng:
+                        </div>
+
+                        <img id="qrImage" alt="QR HD Saison" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
+
+                        <div style="max-width: 500px; margin: 0 auto; text-align: left;">
+                            <div class="info-line" id="infoContract" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
+                            <div class="info-line" id="infoName" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
+                            <div class="info-line" id="infoAmount" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
+                            <div class="info-line" id="infoMonthlyAmount" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
+                            <div class="info-line" id="infoFirstDate" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
+                            <div class="info-line" id="infoLastDate" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
+                            <div class="info-line diff-note" id="infoDayDiff" style="font-size: 13px; color: #d32f2f; margin-top: 8px; line-height: 1.4; background-color: #fff8f8; padding: 8px; border-radius: 6px; border-left: 3px solid #d32f2f; display: none;"></div>
+                        </div>
+
+                        <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                            Muốn có cả QR + thông tin trong 1 ảnh: hãy chụp màn hình khung này 😊
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; text-align: center; font-size: 13px; color: #555; background: #eee; padding: 10px; border-radius: 8px;">
+                        Phát triển bởi SI: <b style="color: #d32f2f;">Nguyễn Quang Dự</b><br>
+                        Anh chị dùng thấy tiện donate em bộ DL nhỏ nha ❤<br>
+                        SĐT/Zalo: <b style="color: #d32f2f;">0988057750</b>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Chức năng chuyển đổi chế độ Mobile App / Máy tính
+        function toggleMobileMode() {
+            document.body.classList.toggle('mobile-mode');
+            const btnText = document.getElementById('btn-mobile-text');
+            if (document.body.classList.contains('mobile-mode')) {
+                btnText.innerText = "💻 Chuyển về Giao diện Máy tính";
+            } else {
+                btnText.innerText = "📱 Chuyển sang Mobi App";
+            }
+        }
+
+        // Đường link Google Apps Script bản quyền mới
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSNT99dYifCMmJ4CH7-By1IHZe7Wua8m3A1HvpHpo93OamSlxY80XVP0sYQNYNhxGw/exec";
+
+        function getFreshApiUrl() {
+            return APPS_SCRIPT_URL + "?t=" + new Date().getTime();
+        }
+
+        function parseDateString(dateStr) {
+            if (!dateStr) return null;
+            let cleanStr = dateStr.toString().trim();
+            let dObj = new Date(cleanStr);
+            if (!isNaN(dObj.getTime())) {
+                dObj.setHours(23, 59, 59, 999);
+                return dObj;
+            }
+            let parts = cleanStr.split(/[\/\-]/);
+            if (parts.length === 3) {
+                let day = parseInt(parts[0], 10);
+                let month = parseInt(parts[1], 10) - 1;
+                let year = parseInt(parts[2], 10);
+                let parsedDate = new Date(year, month, day, 23, 59, 59);
+                if (!isNaN(parsedDate.getTime())) return parsedDate;
+            }
+            return null;
+        }
+
+        async function fetchUserData(user, pass) {
+            try {
+                let response = await fetch(getFreshApiUrl());
+                let data = await response.json();
+                let users = data.users || [];
+
+                for (let i = 0; i < users.length; i++) {
+                    if (users[i].user.toLowerCase() === user.toLowerCase() && users[i].pass === pass) {
+                        let expDateObj = parseDateString(users[i].date);
+                        let daysLeft = 0;
+                        if (expDateObj) {
+                            let today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            let diff = expDateObj.getTime() - today.getTime();
+                            daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                        }
+                        return { 
+                            found: true, 
+                            daysLeft: daysLeft > 0 ? daysLeft : 0, 
+                            expiryDate: users[i].date 
+                        };
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi fetch:", e);
+            }
+            return { found: false, daysLeft: 0, expiryDate: "" };
+        }
+
+        async function activateKeyOnServer(user, key) {
+            try {
+                let response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ user: user, key: key })
+                });
+                let result = await response.json();
+                return result;
+            } catch (e) {
+                console.error("Lỗi POST:", e);
+                return { success: false, message: "Không kết nối được tới máy chủ!" };
+            }
+        }
+
+        async function checkLoginSession() {
+            let savedUser = localStorage.getItem("quangvinh_logged_user");
+            let savedPass = localStorage.getItem("quangvinh_logged_pass");
+
+            if (savedUser) {
+                document.getElementById('display-user-name').innerText = savedUser;
+
+                if (savedUser === "Admin" && savedPass === "999999") {
+                    document.getElementById('key-expiry-display').innerHTML = `<span style="color: #2563eb;">Admin Master</span>`;
+                    document.getElementById('login-overlay').style.display = 'none';
+                    return;
+                }
+
+                let userStatus = await fetchUserData(savedUser, savedPass);
+                if (userStatus.found && userStatus.daysLeft > 0) {
+                    updateKeyBadgeDisplay(userStatus.daysLeft, userStatus.expiryDate);
+                    document.getElementById('login-overlay').style.display = 'none';
+                    return;
+                }
+            }
+            showLoginForm();
+        }
+
+        async function handleLogin() {
+            let user = document.getElementById('login-user').value.trim();
+            let pass = document.getElementById('login-pass').value.trim();
+            let errDiv = document.getElementById('login-error');
+
+            if (!user || !pass) {
+                errDiv.innerText = "Vui lòng nhập Tên đăng nhập và Mật khẩu!";
+                return;
+            }
+
+            if (user === "Admin" && pass === "999999") {
+                localStorage.setItem("quangvinh_logged_user", user);
+                localStorage.setItem("quangvinh_logged_pass", pass);
+                document.getElementById('display-user-name').innerText = user;
+                document.getElementById('key-expiry-display').innerHTML = `<span style="color: #2563eb;">Admin Master</span>`;
+                document.getElementById('login-overlay').style.display = 'none';
+                return;
+            }
+
+            errDiv.innerText = "Đang kiểm tra tài khoản...";
+            let userStatus = await fetchUserData(user, pass);
+
+            if (!userStatus.found) {
+                errDiv.innerText = "Sai tên đăng nhập hoặc mật khẩu!";
+                return;
+            }
+
+            localStorage.setItem("quangvinh_logged_user", user);
+            localStorage.setItem("quangvinh_logged_pass", pass);
+            document.getElementById('display-user-name').innerText = user;
+
+            if (userStatus.daysLeft > 0) {
+                updateKeyBadgeDisplay(userStatus.daysLeft, userStatus.expiryDate);
+                document.getElementById('login-overlay').style.display = 'none';
+            } else {
+                showKeyActivationForm("Tài khoản của bạn đã HẾT HẠN! Nhập Key để nạp thêm ngày.");
+            }
+        }
+
+        async function handleActivateKeyOverlay() {
+            let keyInput = document.getElementById('activate-key-input').value.trim();
+            let errDiv = document.getElementById('login-error');
+            let user = localStorage.getItem("quangvinh_logged_user") || document.getElementById('login-user').value.trim();
+
+            if (!keyInput) {
+                errDiv.innerText = "Vui lòng nhập mã Key!";
+                return;
+            }
+
+            errDiv.innerText = "Đang kích hoạt Key trên Google Sheets...";
+            let res = await activateKeyOnServer(user, keyInput);
+
+            if (res.success) {
+                alert(`Kích hoạt thành công!\n+ Thêm ${res.addedDays} ngày bản quyền.\n+ Hạn mới đến ngày: ${res.newExpiry}`);
+                let userStatus = await fetchUserData(user, localStorage.getItem("quangvinh_logged_pass"));
+                updateKeyBadgeDisplay(userStatus.daysLeft, userStatus.expiryDate);
+                document.getElementById('login-overlay').style.display = 'none';
+            } else {
+                errDiv.innerText = res.message;
+            }
+        }
+
+        async function handleSidebarKeyUpdate() {
+            let keyInput = document.getElementById('sidebar-key-input').value.trim();
+            let currentUser = localStorage.getItem("quangvinh_logged_user");
+
+            if (!keyInput) {
+                alert("Vui lòng nhập mã Key mới!");
+                return;
+            }
+
+            let badge = document.getElementById('key-expiry-display');
+            badge.innerHTML = `<span style="color: #2563eb;">Đang xử lý kích hoạt...</span>`;
+
+            let res = await activateKeyOnServer(currentUser, keyInput);
+            if (res.success) {
+                alert(`Kích hoạt thành công!\n+ Thêm ${res.addedDays} ngày.\n+ Hạn mới: ${res.newExpiry}`);
+                document.getElementById('sidebar-key-input').value = "";
+                let userStatus = await fetchUserData(currentUser, localStorage.getItem("quangvinh_logged_pass"));
+                updateKeyBadgeDisplay(userStatus.daysLeft, userStatus.expiryDate);
+            } else {
+                alert(res.message);
+                manualSyncData();
+            }
+        }
+
+        async function manualSyncData() {
+            let currentUser = localStorage.getItem("quangvinh_logged_user");
+            let currentPass = localStorage.getItem("quangvinh_logged_pass");
+
+            if (!currentUser) return;
+
+            let badge = document.getElementById('key-expiry-display');
+            badge.innerHTML = `<span style="color: #2563eb;">Đang đồng bộ...</span>`;
+
+            let userStatus = await fetchUserData(currentUser, currentPass);
+            if (userStatus.found) {
+                updateKeyBadgeDisplay(userStatus.daysLeft, userStatus.expiryDate);
+                alert("Đồng bộ thành công!");
+            } else {
+                alert("Không tìm thấy dữ liệu tài khoản!");
+            }
+        }
+
+        function updateKeyBadgeDisplay(totalDays, latestDate) {
+            let badge = document.getElementById('key-expiry-display');
+            if (!badge) return;
+
+            let formattedDate = latestDate;
+            let dObj = new Date(latestDate);
+            if (!isNaN(dObj.getTime())) {
+                let dDay = ("0" + dObj.getDate()).slice(-2);
+                let dMonth = ("0" + (dObj.getMonth() + 1)).slice(-2);
+                let dYear = dObj.getFullYear();
+                formattedDate = `${dDay}/${dMonth}/${dYear}`;
+            }
+
+            if (totalDays > 0) {
+                badge.innerHTML = `<span style="color: #16a34a;">Còn ${totalDays} ngày (Đến ${formattedDate})</span>`;
+            } else {
+                badge.innerHTML = `<span style="color: #dc2626;">Đã hết hạn</span>`;
+            }
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.getElementById('form-title').innerText = "Đăng nhập hệ thống";
+            document.getElementById('login-fields').style.display = 'block';
+            document.getElementById('key-activate-fields').style.display = 'none';
+            document.getElementById('btn-submit-login').style.display = 'block';
+            document.getElementById('btn-submit-key').style.display = 'none';
+            document.getElementById('login-error').innerText = "";
+        }
+
+        function showKeyActivationForm(msg) {
+            document.getElementById('form-title').innerText = "Kích Hoạt Bản Quyền";
+            document.getElementById('login-fields').style.display = 'none';
+            document.getElementById('key-activate-fields').style.display = 'block';
+            document.getElementById('btn-submit-login').style.display = 'none';
+            document.getElementById('btn-submit-key').style.display = 'block';
+            document.getElementById('login-error').innerText = msg;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem("quangvinh_logged_user");
+            localStorage.removeItem("quangvinh_logged_pass");
+            location.reload();
+        }
+
+        function switchTab(tabIndex, btnElement) {
+            document.querySelectorAll('.paper').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabIndex).classList.add('active');
+            btnElement.classList.add('active');
+
+            const sidebarDefault = document.getElementById('sidebar-form-default');
+            const sidebarPage7 = document.getElementById('sidebar-form-page7');
+            const sidebarPage8 = document.getElementById('sidebar-form-page8');
+
+            sidebarDefault.style.display = 'none';
+            sidebarPage7.style.display = 'none';
+            sidebarPage8.style.display = 'none';
+
+            if (tabIndex === 7) {
+                sidebarPage7.style.display = 'flex';
+                sidebarPage7.style.flexDirection = 'column';
+                sidebarPage7.style.gap = '10px';
+            } else if (tabIndex === 8) {
+                sidebarPage8.style.display = 'flex';
+                sidebarPage8.style.flexDirection = 'column';
+                sidebarPage8.style.gap = '10px';
+            } else {
+                sidebarDefault.style.display = 'flex';
+                sidebarDefault.style.flexDirection = 'column';
+                sidebarDefault.style.gap = '10px';
+            }
+        }
+
+        function autoFillBranch() {
+            const val = document.getElementById('in_chinhanh').value;
+            let ten = "VINFAST QUANG VINH 8", dc = "Số 127 đường 14/10, TT Tiền Hải", sdt = "0929.116.288";
+            if (val === "QV1") { ten = "QUANG VINH 1"; dc = "Cách ngã 3 Trái Diêm 100m"; sdt = "0904.388.299"; }
+            if (val === "QV2") { ten = "QUANG VINH 2"; dc = "Cách ngã 3 Trái Diêm 300m"; sdt = "0338.613.188"; }
+            if (val === "QV5") { ten = "QUANG VINH 5"; dc = "Vĩnh Trà, Hưng Phú, Hưng Yên"; sdt = "0981.33.66.86"; }
+            
+            document.querySelectorAll('.out_ten_ch').forEach(e => e.innerText = ten);
+            document.querySelectorAll('.out_dc_ch').forEach(e => e.innerText = dc);
+            document.querySelectorAll('.out_sdt_ch').forEach(e => e.innerText = sdt);
+        }
+
+        function setClassText(className, value) {
+            document.querySelectorAll('.' + className).forEach(el => {
+                el.innerText = value || '....................';
+            });
+        }
+
+        function syncAll() {
+            const ngayVal = document.getElementById('in_ngay') ? document.getElementById('in_ngay').value : '';
+
+            setClassText('out_sohd', document.getElementById('in_sohd') ? document.getElementById('in_sohd').value : '');
+            setClassText('out_ngay_text', ngayVal);
+            
+            const dateParts = ngayVal.split('/');
+            const dateLong = dateParts.length === 3
+                ? `${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`
+                : ngayVal;
+            setClassText('out_ngay_day', dateLong);
+            
+            setClassText('out_hoten', document.getElementById('in_hoten') ? document.getElementById('in_hoten').value.toUpperCase() : '');
+            setClassText('out_sdt', document.getElementById('in_sdt') ? document.getElementById('in_sdt').value : '');
+            setClassText('out_ngaysinh', document.getElementById('in_ngaysinh') ? document.getElementById('in_ngaysinh').value : '');
+            setClassText('out_cccd', document.getElementById('in_cccd') ? document.getElementById('in_cccd').value : '');
+            setClassText('out_ngaycap', document.getElementById('in_ngaycap') ? document.getElementById('in_ngaycap').value : '');
+            setClassText('out_noicap', document.getElementById('in_noicap') ? document.getElementById('in_noicap').value.toUpperCase() : '');
+            setClassText('out_diachi', document.getElementById('in_diachi') ? document.getElementById('in_diachi').value.toUpperCase() : '');
+            setClassText('out_loaixe', document.getElementById('in_loaixe') ? document.getElementById('in_loaixe').value.toUpperCase() : '');
+            setClassText('out_nhanhieu', document.getElementById('in_nhanhieu') ? document.getElementById('in_nhanhieu').value : '');
+            setClassText('out_mausac', document.getElementById('in_mausac') ? document.getElementById('in_mausac').value.toUpperCase() : '');
+            setClassText('out_pin', document.getElementById('in_pin') ? document.getElementById('in_pin').value : '');
+            setClassText('out_sk', document.getElementById('in_sk') ? document.getElementById('in_sk').value : '');
+            setClassText('out_sm', document.getElementById('in_sm') ? document.getElementById('in_sm').value : '');
+            setClassText('out_serisac', document.getElementById('in_serisac') ? document.getElementById('in_serisac').value : '');
+            setClassText('out_tongtien', document.getElementById('in_tongtien') ? document.getElementById('in_tongtien').value : '');
+            setClassText('out_dathanhtoan', document.getElementById('in_dathanhtoan') ? document.getElementById('in_dathanhtoan').value : '');
+            setClassText('out_conno', document.getElementById('in_conno') ? document.getElementById('in_conno').value : '');
+            setClassText('out_ghichu', document.getElementById('in_ghichu') ? document.getElementById('in_ghichu').value : '');
+        }
+
+        function syncPage7() {
+            const guiTen = document.getElementById('vd_nguoigui_ten').value;
+            const guiDc = document.getElementById('vd_nguoigui_diachi').value;
+            const guiSdt = document.getElementById('vd_nguoigui_sdt').value;
+
+            const nhanTen = document.getElementById('vd_nguoinhan_ten').value;
+            const nhanDc = document.getElementById('vd_nguoinhan_diachi').value;
+            const nhanSdt = document.getElementById('vd_nguoinhan_sdt').value;
+
+            const ebill = document.getElementById('vd_ebill').value;
+            const note = document.getElementById('vd_note').value;
+
+            document.getElementById('out_vd_nguoigui_ten').innerText = guiTen;
+            document.getElementById('out_vd_nguoigui_diachi').innerText = guiDc;
+            document.getElementById('out_vd_nguoigui_sdt').innerText = guiSdt;
+
+            document.getElementById('out_vd_nguoinhan_ten').innerText = nhanTen;
+            document.getElementById('out_vd_nguoinhan_diachi').innerText = nhanDc;
+            document.getElementById('out_vd_nguoinhan_sdt').innerText = nhanSdt;
+
+            document.getElementById('out_vd_ebill').innerText = ebill;
+            document.getElementById('out_vd_note').innerText = note;
+
+            document.querySelectorAll('.out_vd_nguoigui_ten').forEach(el => el.innerText = guiTen);
+            document.querySelectorAll('.out_vd_nguoigui_diachi').forEach(el => el.innerText = guiDc);
+            document.querySelectorAll('.out_vd_nguoigui_sdt').forEach(el => el.innerText = guiSdt);
+
+            document.querySelectorAll('.out_vd_nguoinhan_ten').forEach(el => el.innerText = nhanTen);
+            document.querySelectorAll('.out_vd_nguoinhan_diachi').forEach(el => el.innerText = nhanDc);
+            document.querySelectorAll('.out_vd_nguoinhan_sdt').forEach(el => el.innerText = nhanSdt);
+
+            document.querySelectorAll('.out_vd_ebill').forEach(el => el.innerText = ebill);
+            document.querySelectorAll('.out_vd_note').forEach(el => el.innerText = note);
+        }
+
+        function formatDateVN(isoDate) {
+            if (!isoDate) return "";
+            var parts = isoDate.split("-");
+            if (parts.length !== 3) return isoDate;
+            return parts[2] + "/" + parts[1] + "/" + parts[0];
+        }
+
+        function generateQR() {
+            var amountInput     = (document.getElementById("qr_amount").value || "").trim();
+            var monthlyInput    = (document.getElementById("qr_monthlyAmount").value || "").trim();
+            var contract         = (document.getElementById("qr_contract").value || "").trim();
+            var name             = (document.getElementById("qr_name").value || "").trim().toUpperCase();
+            var contractISO      = (document.getElementById("qr_contractDate").value || "").trim();
+            var firstISO         = (document.getElementById("qr_firstPaymentDate").value || "").trim();
+            var lastISO          = (document.getElementById("qr_lastPaymentDate").value || "").trim();
+
+            if (!contract || !name) {
+                alert("Vui lòng nhập Số Hợp Đồng và Tên Khách Hàng!");
+                return;
+            }
+
+            var firstVN = formatDateVN(firstISO);
+            var lastVN  = formatDateVN(lastISO);
+
+            var addInfoContent = contract + " _ " + name;
+
+            var qrUrl = "https://img.vietqr.io/image/HDB-002704070014601-print.png";
+            qrUrl += "?addInfo=" + encodeURIComponent(addInfoContent);
+            qrUrl += "&accountName=" + encodeURIComponent("HD SAISON");
+
+            var amount = parseInt(amountInput, 10);
+            var amountText = "";
+            if (!isNaN(amount) && amount > 0) {
+                qrUrl += "&amount=" + amount;
+                amountText = "Số tiền QR: " + amount.toLocaleString('vi-VN') + " VND";
+            } else {
+                amountText = "Số tiền QR: (Tự nhập khi quét)";
+            }
+
+            var monthlyVal = parseInt(monthlyInput, 10);
+            var monthlyText = "";
+            if (!isNaN(monthlyVal) && monthlyVal > 0) {
+                monthlyText = "Số tiền trả góp hàng tháng : " + monthlyVal.toLocaleString('vi-VN') + " VND (chưa bao gồm phí trả chậm)";
+            }
+
+            var img = document.getElementById("qrImage");
+            img.src = qrUrl;
+
+            document.getElementById("infoContract").innerText = "Số HĐ: " + contract;
+            document.getElementById("infoName").innerText = "Khách hàng: " + name;
+            document.getElementById("infoAmount").innerText = amountText;
+            document.getElementById("infoMonthlyAmount").innerText = monthlyText;
+            document.getElementById("infoFirstDate").innerText = firstVN ? ("Ngày thanh toán đầu tiên: " + firstVN) : "";
+            document.getElementById("infoLastDate").innerText = lastVN ? ("Ngày thanh toán cuối cùng: " + lastVN) : "";
+
+            var diffDiv = document.getElementById("infoDayDiff");
+            if (contractISO && firstISO) {
+                var dateContract = new Date(contractISO);
+                var dateFirst = new Date(firstISO);
+                
+                var timeDiff = dateFirst.getTime() - dateContract.getTime();
+                var totalDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                if (totalDays >= 0) {
+                    var diffDays = totalDays - 30;
+                    diffDiv.innerHTML = "Kỳ đầu tính từ ngày ký HĐ đến ngày đóng đầu tiên là <b>" + totalDays + "</b> ngày (chênh lệch <b>" + diffDays + "</b> ngày) theo chu kì tính lãi 30 ngày. <br><i>Tiền chênh lệch quý khách theo dõi SMS HD Saison gửi về SĐT khách hàng ký HĐ vào kỳ cuối.</i>";
+                    diffDiv.style.display = "block";
+                } else {
+                    diffDiv.style.display = "none";
+                }
+            } else {
+                diffDiv.style.display = "none";
+            }
+
+            var resultDiv = document.getElementById("qr-result");
+            resultDiv.style.display = "block";
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkLoginSession();
+
+            const inputNgay = document.getElementById('in_ngay');
+            if (inputNgay && !inputNgay.value) {
+                const d = new Date();
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                inputNgay.value = `${day}/${month}/${year}`;
+            }
+            syncAll();
+            syncPage7();
+        });
+
+        let html5QrCode = null;
+
+        function startQRScanner() {
+            const readerContainer = document.getElementById('qr-reader-container');
+            readerContainer.style.display = 'block';
+            
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 150 }
+                },
+                (decodedText, decodedResult) => {
+                    document.getElementById('qr_contract').value = decodedText.trim();
+                    stopQRScanner();
+                },
+                (errorMessage) => {}
+            ).catch((err) => {
+                alert("Không thể mở camera. Vui lòng cấp quyền camera cho trình duyệt!");
+                readerContainer.style.display = 'none';
+            });
+        }
+
+        function stopQRScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('qr-reader-container').style.display = 'none';
+                }).catch(err => {
+                    document.getElementById('qr-reader-container').style.display = 'none';
+                });
+            } else {
+                document.getElementById('qr-reader-container').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
