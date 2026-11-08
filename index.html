@@ -280,7 +280,7 @@
         .bold { font-weight: bold; }
         .sign-space { height: 100px; }
 
-        /* ================= BỐ CỤC CHUẨN SCAN CCCD TỶ LỆ VÀNG (TRANG 9) ================= */
+        /* BỐ CỤC SCAN CCCD (TRANG 9) */
         .cccd-print-page.active {
             display: flex !important;
             flex-direction: column;
@@ -305,7 +305,6 @@
             text-transform: uppercase;
         }
 
-        /* TỶ LỆ VÀNG CHUẨN ID-1 THẺ CĂN CƯỚC (85.6mm x 53.98mm) */
         .cccd-card-box {
             width: 85.6mm;
             height: 53.98mm;
@@ -333,7 +332,7 @@
             text-align: center;
         }
 
-        /* ================= CHẾ ĐỘ MOBI APP (TĂNG 300% FONT CHỮ TOÀN DIỆN, GIỮ NGUYÊN TỶ LỆ) ================= */
+        /* ================= CHẾ ĐỘ MOBI APP ================= */
         @media screen {
             body.is-mobile-app {
                 height: auto !important;
@@ -360,8 +359,8 @@
                 border-bottom: 1px solid #cbd5e1 !important;
                 overflow: visible !important;
                 height: auto !important;
-                padding: 24px !important;
-                gap: 24px !important;
+                padding: 16px !important;
+                gap: 16px !important;
                 order: 1 !important;
             }
 
@@ -376,30 +375,29 @@
                 background: transparent !important;
             }
 
-            /* PHẦN CHỌN TRANG TRÊN MOBI ĐẨY XUỐNG DƯỚI FORM NHẬP */
             body.is-mobile-app .bottom-action-box {
                 order: 1 !important;
                 width: 100% !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
-                padding: 24px !important;
-                gap: 20px !important;
+                padding: 16px !important;
+                gap: 14px !important;
                 background: #ffffff !important;
                 border-bottom: none !important;
-                margin-top: 14px !important;
+                margin-top: 10px !important;
             }
 
             body.is-mobile-app .tabs-header-row {
                 flex-direction: column !important;
                 align-items: flex-start !important;
-                gap: 14px !important;
+                gap: 10px !important;
                 width: 100% !important;
             }
 
             body.is-mobile-app .page-tabs-grid {
                 display: grid !important;
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 10px !important;
+                gap: 8px !important;
                 width: 100% !important;
             }
 
@@ -407,48 +405,75 @@
                 width: 100% !important;
             }
 
-            /* TĂNG TOÀN BỘ CHỮ TRÊN MOBI APP LÊN ĐÚNG 300% (GẤP 3 LẦN GỐC) */
-            body.is-mobile-app .btn-toggle-mobi { font-size: 42px !important; padding: 24px !important; }
-            body.is-mobile-app .note-quangdu { font-size: 48px !important; line-height: 1.55 !important; padding: 24px !important; }
-            body.is-mobile-app .note-quangdu span { font-size: 39px !important; }
-            body.is-mobile-app .note-quangdu div { font-size: 42px !important; margin-top: 8px !important; }
+            /* CỠ CHỮ TRÊN MOBI */
+            body.is-mobile-app .btn-toggle-mobi { font-size: 21px !important; padding: 16px !important; }
+            body.is-mobile-app .note-quangdu { font-size: 24px !important; line-height: 1.5 !important; padding: 16px !important; }
+            body.is-mobile-app .note-quangdu span { font-size: 19.5px !important; }
+            body.is-mobile-app .note-quangdu div { font-size: 21px !important; margin-top: 5px !important; }
             body.is-mobile-app .user-info-badge, 
-            body.is-mobile-app .key-status-badge { font-size: 39px !important; padding: 22px !important; }
-            body.is-mobile-app h2 { font-size: 48px !important; }
-            body.is-mobile-app .section-tag { font-size: 36px !important; padding: 16px 22px !important; }
-            body.is-mobile-app .btn-scan-cccd { font-size: 38px !important; padding: 22px !important; }
-            body.is-mobile-app .btn-capture-cccd { font-size: 38px !important; padding: 22px !important; }
-            body.is-mobile-app .btn-scan-field { font-size: 36px !important; padding: 16px 20px !important; }
-            body.is-mobile-app .form-group label { font-size: 36px !important; margin-bottom: 8px !important; }
+            body.is-mobile-app .key-status-badge { font-size: 19.5px !important; padding: 15px !important; }
+            body.is-mobile-app h2 { font-size: 24px !important; }
+            body.is-mobile-app .section-tag { font-size: 18px !important; padding: 10px 15px !important; }
+            body.is-mobile-app .btn-scan-cccd { font-size: 19px !important; padding: 14px !important; }
+            body.is-mobile-app .btn-capture-cccd { font-size: 19px !important; padding: 14px !important; }
+            body.is-mobile-app .btn-scan-field { font-size: 18px !important; padding: 10px 14px !important; }
+            body.is-mobile-app .form-group label { font-size: 18px !important; margin-bottom: 5px !important; }
             body.is-mobile-app .form-group input, 
-            body.is-mobile-app .form-group select { font-size: 39px !important; padding: 20px 22px !important; }
-            body.is-mobile-app .bottom-action-box div { font-size: 36px !important; }
-            body.is-mobile-app .tab-btn { font-size: 34px !important; padding: 18px 4px !important; }
-            body.is-mobile-app .btn-print-submit { font-size: 42px !important; padding: 24px !important; }
+            body.is-mobile-app .form-group select { font-size: 19.5px !important; padding: 12px 15px !important; }
+            body.is-mobile-app .bottom-action-box div { font-size: 18px !important; }
+            body.is-mobile-app .tab-btn { font-size: 17px !important; padding: 12px 3px !important; }
+            body.is-mobile-app .btn-print-submit { font-size: 21px !important; padding: 16px !important; }
 
-            /* KHUNG XEM TRƯỚC ĐẨY XUỐNG DƯỚI CÙNG */
+            /* VÙNG CHỨA BẢN XEM TRƯỚC */
             body.is-mobile-app .preview-panel {
                 order: 2 !important;
                 width: 100% !important;
                 max-width: 100vw !important;
-                padding: 15px 0 !important;
-                overflow-x: auto !important;
+                padding: 14px 8px 30px 8px !important;
+                overflow-x: hidden !important;
                 overflow-y: visible !important;
-                display: flex !important;
-                justify-content: center !important;
+                display: block !important;
                 background: #cbd5e1 !important;
                 border-top: 2px dashed #94a3b8;
             }
 
+            /* CẤU HÌNH TỶ LỆ KHỚP CHUẨN A4 */
             body.is-mobile-app .paper-sheet {
-                width: 210mm !important;
-                min-width: 210mm !important;
-                min-height: 297mm !important;
-                padding: 12mm 10mm !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                aspect-ratio: 210 / 297 !important;
+                min-height: calc((100vw - 16px) * 1.414) !important;
+                padding: 16px 12px !important;
+                font-size: 12px !important;
+                line-height: 1.4 !important;
                 margin: 0 auto !important;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-                border-radius: 4px !important;
-                transform-origin: top center;
+                border-radius: 6px !important;
+            }
+
+            body.is-mobile-app .paper-sheet.active {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
+
+            body.is-mobile-app .header-box-ch { padding: 5px 6px !important; font-size: 10.5px !important; }
+            body.is-mobile-app .header-right { margin-left: -10px !important; }
+            body.is-mobile-app .header-right h3 { font-size: 13px !important; }
+            body.is-mobile-app .header-right h2 { font-size: 17px !important; }
+            body.is-mobile-app .header-right p { font-size: 11px !important; }
+            body.is-mobile-app .sign-space { height: 90px !important; }
+
+            /* Xem trước trang 9 trên điện thoại khớp chiều dọc A4 */
+            body.is-mobile-app .cccd-print-page.active {
+                padding: 24px 12px !important;
+                gap: 20px !important;
+                justify-content: space-around !important;
+            }
+            body.is-mobile-app .cccd-card-box {
+                width: 270px !important;
+                height: 170px !important;
             }
         }
 
@@ -574,22 +599,37 @@
                 📸 Chụp Ảnh 2 Mặt CCCD (In Trang 9)
             </button>
 
-            <!-- KHUNG CAMERA QUÉT QR CCCD ẨN/HIỆN -->
-            <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative;">
+            <!-- KHUNG CAMERA QUÉT QR CCCD -->
+            <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #7c3aed;">
+                <div style="color: #c4b5fd; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">
+                    Đưa mã QR ở góc thẻ CCCD vào sát tâm ô vuông để quét
+                </div>
                 <div id="qr-cccd-reader" style="width: 100%;"></div>
-                <button type="button" onclick="stopCCCDScanner()" style="width: 100%; margin-top: 5px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
+                
+                <div style="margin-top: 8px; text-align: center;">
+                    <label for="qr-file-input" style="color: #38bdf8; font-size: 12px; text-decoration: underline; cursor: pointer;">
+                        📁 Hoặc bấm vào đây để chọn ảnh chụp rõ nét mã QR từ máy
+                    </label>
+                    <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="scanQRFromFile(this)">
+                </div>
+
+                <button type="button" onclick="stopCCCDScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
-            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD -->
+            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD (CẦM DỌC ĐIỆN THOẠI CHỤP) -->
             <div id="camera-capture-container" style="display: none; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #0284c7; margin-bottom: 10px;">
                 <div id="capture-step-title" style="color: #38bdf8; font-weight: bold; font-size: 14px; text-align: center;">Đang chụp: MẶT TRƯỚC CCCD</div>
-                <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
-                    <video id="capture-video" autoplay playsinline style="width: 100%; display: block;"></video>
-                    <!-- Khung viền tỷ lệ vàng hướng dẫn canh thẻ -->
-                    <div style="position: absolute; top: 12%; left: 8%; width: 84%; height: 76%; border: 2px dashed #22c55e; border-radius: 6px; pointer-events: none; display: flex; align-items: center; justify-content: center;">
-                        <span style="color: #22c55e; font-size: 11px; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;">Canh thẻ vừa khung này</span>
+                
+                <!-- Khung camera dọc có khung viền ngang hướng dẫn canh thẻ -->
+                <div id="capture-viewport" style="position: relative; width: 100%; max-width: 360px; margin: 0 auto; border-radius: 6px; overflow: hidden; background: #000;">
+                    <video id="capture-video" autoplay playsinline style="width: 100%; display: block; object-fit: cover;"></video>
+                    
+                    <!-- Khung viền ngang chuẩn tỷ lệ ID-1 căn giữa màn hình dọc -->
+                    <div id="capture-guide-box" style="position: absolute; top: 50%; left: 5%; width: 90%; aspect-ratio: 85.6 / 53.98; transform: translateY(-50%); border: 2.5px dashed #22c55e; border-radius: 6px; pointer-events: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);">
+                        <span style="color: #ffffff; font-size: 12px; font-weight: bold; background: rgba(34, 197, 94, 0.85); padding: 4px 8px; border-radius: 4px;">Đặt thẻ nằm ngang vào khung này</span>
                     </div>
                 </div>
+
                 <button type="button" id="btn-snap-photo" onclick="snapCurrentStep()" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;">📸 Bấm Chụp</button>
                 <button type="button" onclick="closeCaptureModal()" style="width: 100%; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">Hủy / Đóng Camera</button>
             </div>
@@ -649,7 +689,7 @@
                 </div>
             </div>
 
-            <!-- SỐ KHUNG (CÓ NÚT CHỌN CAMERA QUÉT QR) -->
+            <!-- SỐ KHUNG -->
             <div class="form-group">
                 <label>Số khung (SK)</label>
                 <div class="input-with-btn">
@@ -658,7 +698,7 @@
                 </div>
             </div>
 
-            <!-- SỐ MÁY (CÓ NÚT CHỌN CAMERA QUÉT QR) -->
+            <!-- SỐ MÁY -->
             <div class="form-group">
                 <label>Số máy (SM)</label>
                 <div class="input-with-btn">
@@ -667,7 +707,7 @@
                 </div>
             </div>
 
-            <!-- SỐ SERI SẠC (CÓ NÚT CHỌN CAMERA QUÉT QR) -->
+            <!-- SỐ SERI SẠC -->
             <div class="form-group">
                 <label>Số seri sạc</label>
                 <div class="input-with-btn">
@@ -700,7 +740,7 @@
             </div>
         </div>
 
-        <!-- CỘT BÊN PHẢI (MÁY TÍNH: THANH CHỌN TRANG NẰM TRÊN, XEM TRƯỚC NẰM DƯỚI) -->
+        <!-- CỘT BÊN PHẢI -->
         <div class="main-content-panel">
             <!-- PHẦN TÙY CHỌN TRANG VÀ NÚT IN -->
             <div class="bottom-action-box">
@@ -821,22 +861,19 @@
             }
         });
 
-        // Hàm chuyển tab xem trước chuẩn: ẩn tất cả các trang, chỉ hiển thị duy nhất trang được chọn
         function switchPage(pageIndex, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
-            // Ẩn tất cả các trang
             document.querySelectorAll('.paper-sheet').forEach(p => p.classList.remove('active'));
 
-            // Hiển thị đúng trang được chọn
             const targetPage = document.getElementById('page-view-' + pageIndex);
             if (targetPage) {
                 targetPage.classList.add('active');
             }
         }
 
-        // ================= XỬ LÝ QUÉT QR CHO CÁC Ô RIÊNG LẺ (SỐ KHUNG, SỐ MÁY, SERI SẠC) =================
+        // ================= XỬ LÝ QUÉT QR CHO CÁC Ô RIÊNG LẺ =================
         let fieldScanner = null;
         let currentTargetFieldId = null;
 
@@ -854,7 +891,7 @@
 
             fieldScanner.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 280, height: 280 } },
+                { fps: 15, qrbox: { width: 250, height: 250 } },
                 (decodedText) => {
                     const cleanVal = decodedText.trim();
                     const targetInput = document.getElementById(currentTargetFieldId);
@@ -884,9 +921,9 @@
             }
         }
 
-        // ================= XỬ LÝ CHỤP ẢNH 2 MẶT CCCD CẬP NHẬT TRANG 9 =================
+        // ================= XỬ LÝ CHỤP ẢNH 2 MẶT CCCD KHI CẦM DỌC ĐIỆN THOẠI =================
         let captureStream = null;
-        let currentCaptureStep = 1; // 1: Mặt trước, 2: Mặt sau
+        let currentCaptureStep = 1;
         let frontImageBase64 = null;
         let backImageBase64 = null;
 
@@ -897,8 +934,13 @@
             updateCaptureStepUI();
 
             try {
+                // Ưu tiên độ phân giải cao khi quay dọc
                 captureStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    video: { 
+                        facingMode: { ideal: "environment" }, 
+                        width: { ideal: 1920 }, 
+                        height: { ideal: 1080 } 
+                    },
                     audio: false
                 });
                 video.srcObject = captureStream;
@@ -937,23 +979,32 @@
             const canvas = document.getElementById('hidden-capture-canvas');
             if (!video.videoWidth || !video.videoHeight) return;
 
-            // Cắt ảnh chính xác theo tỷ lệ thẻ ID-1 chuẩn (85.6 / 53.98 = 1.5858)
-            const targetRatio = 85.6 / 53.98;
-            let cropW, cropH, startX, startY;
+            // Tỷ lệ chuẩn ID-1 của thẻ CCCD nằm ngang: 85.6mm / 53.98mm = 1.5858
+            const cardAspectRatio = 85.6 / 53.98;
 
-            if (video.videoWidth / video.videoHeight > targetRatio) {
-                cropH = video.videoHeight * 0.8;
-                cropW = cropH * targetRatio;
-            } else {
-                cropW = video.videoWidth * 0.85;
-                cropH = cropW / targetRatio;
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+
+            // Tính toán vùng chữ nhật nằm ngang ở chính giữa khung camera quay dọc
+            // Khung ngắm chiếm 90% chiều rộng khung hình camera
+            let cropW = vw * 0.90;
+            let cropH = cropW / cardAspectRatio;
+
+            // Nếu chiều cao vượt quá vùng cho phép thì co lại theo chiều cao
+            if (cropH > vh * 0.85) {
+                cropH = vh * 0.85;
+                cropW = cropH * cardAspectRatio;
             }
-            startX = (video.videoWidth - cropW) / 2;
-            startY = (video.videoHeight - cropH) / 2;
+
+            // Tọa độ bắt đầu cắt (căn chính giữa video)
+            let startX = (vw - cropW) / 2;
+            let startY = (vh - cropH) / 2;
 
             canvas.width = cropW;
             canvas.height = cropH;
             const ctx = canvas.getContext('2d');
+            
+            // Cắt đúng vùng thẻ nằm ngang trong luồng video dọc
             ctx.drawImage(video, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
 
             const imgBase64 = canvas.toDataURL('image/jpeg', 0.95);
@@ -966,7 +1017,7 @@
 
                 currentCaptureStep = 2;
                 updateCaptureStepUI();
-                alert("✅ Đã chụp Mặt Trước thành công!\nTiếp tục bấm chụp MẶT SAU.");
+                alert("✅ Đã chụp Mặt Trước thành công!\nTiếp tục đưa MẶT SAU vào khung và bấm chụp.");
             } else {
                 backImageBase64 = imgBase64;
                 document.getElementById('img-back-view').src = backImageBase64;
@@ -976,7 +1027,6 @@
                 closeCaptureModal();
                 alert("🎉 Đã chụp xong 2 mặt CCCD!\nĐang tự động chuyển sang Trang số 9 để xem trước và in.");
 
-                // Tự động chuyển hiển thị sang Trang 9
                 switchPage(9, document.getElementById('btn-tab-9'));
             }
         }
@@ -995,27 +1045,41 @@
         function startCCCDScanner() {
             const container = document.getElementById('qr-cccd-reader-container');
             container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
 
             if (!cccdQrCodeScanner) {
                 cccdQrCodeScanner = new Html5Qrcode("qr-cccd-reader");
             }
 
+            const config = {
+                fps: 20,
+                qrbox: (viewfinderWidth, viewfinderHeight) => {
+                    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    const qrboxSize = Math.floor(minEdge * 0.7);
+                    return { width: qrboxSize, height: qrboxSize };
+                },
+                aspectRatio: 1.0,
+                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+            };
+
             cccdQrCodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 280, height: 280 } },
+                { 
+                    facingMode: "environment",
+                    advanced: [{ focusMode: "continuous" }] 
+                },
+                config,
                 (decodedText) => {
                     parseCCCDQR(decodedText.trim());
                     stopCCCDScanner();
                 },
                 (errorMessage) => {}
             ).catch((err) => {
-                alert("Không thể khởi động camera. Vui lòng cấp quyền truy cập Camera cho trình duyệt!");
-                container.style.display = 'none';
+                alert("Không thể khởi động camera. Vui lòng cấp quyền Camera cho trình duyệt hoặc thử dùng chức năng tải ảnh chụp rõ nét bên dưới!");
             });
         }
 
         function stopCCCDScanner() {
-            if (cccdQrCodeScanner) {
+            if (cccdQrCodeScanner && cccdQrCodeScanner.isScanning) {
                 cccdQrCodeScanner.stop().then(() => {
                     document.getElementById('qr-cccd-reader-container').style.display = 'none';
                 }).catch(err => {
@@ -1023,6 +1087,23 @@
                 });
             } else {
                 document.getElementById('qr-cccd-reader-container').style.display = 'none';
+            }
+        }
+
+        function scanQRFromFile(input) {
+            if (input.files && input.files[0]) {
+                const imageFile = input.files[0];
+                if (!cccdQrCodeScanner) {
+                    cccdQrCodeScanner = new Html5Qrcode("qr-cccd-reader");
+                }
+                cccdQrCodeScanner.scanFile(imageFile, true)
+                    .then(decodedText => {
+                        parseCCCDQR(decodedText.trim());
+                        stopCCCDScanner();
+                    })
+                    .catch(err => {
+                        alert("Không tìm thấy mã QR trên ảnh. Vui lòng chụp gần, rõ nét góc có mã QR trên thẻ CCCD!");
+                    });
             }
         }
 
