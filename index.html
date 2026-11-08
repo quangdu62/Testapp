@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Biểu Mẫu - Test Trang 1 & Trang 9</title>
-    <!-- Thư viện quét mã QR & Barcode đa định dạng -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Thư viện ZXing Engine chuẩn quốc tế giải mã QR CCCD UTF-8 cực nhạy -->
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -586,8 +586,8 @@
             <div class="section-tag">2. Thông tin Khách hàng</div>
 
             <!-- NÚT 1: QUÉT QR CCCD -->
-            <button type="button" class="btn-scan-cccd" onclick="startCCCDScanner()">
-                📷 Quét Thông Tin QR CCCD
+            <button type="button" class="btn-scan-cccd" onclick="startZaloStyleCCCDScanner()">
+                ⚡ Quét Siêu Nhạy QR CCCD (Kiểu Zalo)
             </button>
 
             <!-- NÚT 2: CHỤP ẢNH 2 MẶT CCCD IN TRANG 9 -->
@@ -595,21 +595,35 @@
                 📸 Chụp Ảnh 2 Mặt CCCD (In Trang 9)
             </button>
 
-            <!-- KHUNG CAMERA QUÉT QR CCCD -->
-            <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #7c3aed;">
-                <div style="color: #c4b5fd; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">
-                    Đưa mã QR ở góc thẻ CCCD vào giữa khung vuông để quét
+            <!-- KHUNG CAMERA QUÉT QR CCCD (THUẬT TOÁN KIỂU ZALO) -->
+            <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #7c3aed;">
+                <div style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
+                    Cầm thẻ cách camera khoảng 15cm (Đã tự động Zoom nét)
                 </div>
-                <div id="qr-cccd-reader" style="width: 100%;"></div>
                 
+                <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
+                    <video id="qr-cccd-video" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover;"></video>
+                    <!-- Khung tiêu điểm nhắm quét -->
+                    <div style="position: absolute; top: 50%; left: 50%; width: 220px; height: 220px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
+                        <div style="position: absolute; width: 100%; height: 2px; background: #38bdf8; top: 0; box-shadow: 0 0 8px #38bdf8; animation: scanLaser 1.5s infinite alternate;"></div>
+                    </div>
+                </div>
+                
+                <!-- Thanh điều chỉnh Zoom thủ công nếu máy không tự hỗ trợ Auto Zoom -->
+                <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
+                    <span>Thu nhỏ</span>
+                    <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
+                    <span>Phóng to</span>
+                </div>
+
                 <div style="margin-top: 8px; text-align: center;">
                     <label for="qr-file-input" style="color: #38bdf8; font-size: 12px; text-decoration: underline; cursor: pointer;">
-                        📁 Hoặc bấm vào đây để chọn ảnh chụp rõ nét mã QR từ máy
+                        📁 Hoặc bấm vào đây để chọn ảnh chụp góc QR từ máy
                     </label>
                     <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="scanQRFromFile(this)">
                 </div>
 
-                <button type="button" onclick="stopCCCDScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
+                <button type="button" onclick="stopZaloStyleCCCDScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
             <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD (TỰ CẮT VIỀN CHỈ LẤY THẺ) -->
@@ -755,7 +769,7 @@
                 <button type="button" class="btn-print-submit" onclick="window.print()">🖨️ IN MẪU ĐANG CHỌN</button>
             </div>
 
-            <!-- CỘT XEM TRƯỚC (SCALE VỪA KHÍT TỜ A4) -->
+            <!-- CỘT XEM TRƯỚC -->
             <div class="preview-panel" id="preview-panel-container">
                 <div class="a4-scale-wrapper" id="a4-scale-wrapper">
 
@@ -847,8 +861,16 @@
     <!-- HỘP THÔNG BÁO TỰ TẮT -->
     <div id="custom-toast"></div>
 
-    <!-- Canvas ảo dùng để xử lý cắt viền tự động -->
+    <!-- Canvas ảo dùng để xử lý tiền lọc ảnh -->
     <canvas id="hidden-capture-canvas" style="display: none;"></canvas>
+    <canvas id="qr-preprocess-canvas" style="display: none;"></canvas>
+
+    <style>
+        @keyframes scanLaser {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+    </style>
 
     <script>
         function showToast(msg, duration = 2500) {
@@ -867,8 +889,8 @@
 
             if (document.body.classList.contains('is-mobile-app')) {
                 const containerWidth = container.clientWidth - 16;
-                const a4StandardPx = 794; // 210mm
-                const a4StandardHeightPx = 1123; // 297mm
+                const a4StandardPx = 794;
+                const a4StandardHeightPx = 1123;
                 const scaleRatio = containerWidth / a4StandardPx;
 
                 wrapper.style.transform = `scale(${scaleRatio})`;
@@ -905,18 +927,199 @@
         }
 
         function stopAllRunningCameras() {
+            stopZaloStyleCCCDScanner();
             if (captureStream) {
                 captureStream.getTracks().forEach(track => track.stop());
                 captureStream = null;
                 document.getElementById('camera-capture-container').style.display = 'none';
             }
-            if (cccdQrCodeScanner) {
-                try { cccdQrCodeScanner.stop(); } catch(e){}
-                document.getElementById('qr-cccd-reader-container').style.display = 'none';
-            }
             if (fieldScanner) {
                 try { fieldScanner.stop(); } catch(e){}
                 document.getElementById('qr-field-scanner-container').style.display = 'none';
+            }
+        }
+
+        // ================= THUẬT TOÁN QUÉT QR CCCD KIỂU ZALO (HARDWARE ZOOM + PREPROCESSING) =================
+        let cccdZaloStream = null;
+        let cccdZaloTrack = null;
+        let cccdZaloInterval = null;
+        let zxingReader = new ZXing.BrowserQRCodeReader();
+
+        async function startZaloStyleCCCDScanner() {
+            stopAllRunningCameras();
+            const container = document.getElementById('qr-cccd-reader-container');
+            const video = document.getElementById('qr-cccd-video');
+            const zoomBox = document.getElementById('zoom-control-box');
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                // Yêu cầu camera Full HD 1080p và thử kích hoạt Hardware Zoom 2.0x như Zalo
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1920, min: 1280 },
+                        height: { ideal: 1080, min: 720 },
+                        advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }]
+                    },
+                    audio: false
+                };
+
+                cccdZaloStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = cccdZaloStream;
+                await video.play();
+
+                cccdZaloTrack = cccdZaloStream.getVideoTracks()[0];
+                const capabilities = cccdZaloTrack.getCapabilities ? cccdZaloTrack.getCapabilities() : {};
+
+                // Nếu điện thoại có hỗ trợ zoom thì hiện thanh gạt zoom
+                if (capabilities.zoom) {
+                    zoomBox.style.display = 'flex';
+                    const slider = document.getElementById('zoom-slider');
+                    slider.min = capabilities.zoom.min;
+                    slider.max = capabilities.zoom.max;
+                    slider.step = capabilities.zoom.step || 0.1;
+                    slider.value = Math.min(2.0, capabilities.zoom.max);
+                    applyZoom(slider.value);
+                } else {
+                    zoomBox.style.display = 'none';
+                }
+
+                // Vòng lặp giải mã liên tục qua bộ tiền lọc tương phản
+                const canvas = document.getElementById('qr-preprocess-canvas');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+                cccdZaloInterval = setInterval(() => {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        const vw = video.videoWidth;
+                        const vh = video.videoHeight;
+                        
+                        // Lấy vùng giữa màn hình (nơi đặt mã QR)
+                        const scanSize = Math.floor(Math.min(vw, vh) * 0.65);
+                        const sx = (vw - scanSize) / 2;
+                        const sy = (vh - scanSize) / 2;
+
+                        canvas.width = scanSize;
+                        canvas.height = scanSize;
+
+                        // Vẽ khung giữa vào Canvas
+                        ctx.drawImage(video, sx, sy, scanSize, scanSize, 0, 0, scanSize, scanSize);
+
+                        // Bộ lọc tăng độ tương phản nhị phân (Thresholding) giúp đọc hạt QR siêu nhỏ
+                        const imgData = ctx.getImageData(0, 0, scanSize, scanSize);
+                        const d = imgData.data;
+                        for (let i = 0; i < d.length; i += 4) {
+                            const gray = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+                            const val = gray < 120 ? 0 : 255; // Tăng nét ranh giới hạt QR
+                            d[i] = val;
+                            d[i + 1] = val;
+                            d[i + 2] = val;
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+
+                        // Giải mã bằng ZXing Engine
+                        try {
+                            const result = zxingReader.decodeFromCanvas(canvas);
+                            if (result && result.text) {
+                                parseCCCDQR(result.text.trim());
+                                stopZaloStyleCCCDScanner();
+                            }
+                        } catch(e) {
+                            // Thử tiếp tục quét frame gốc nếu bộ lọc thresholding chưa match
+                            try {
+                                ctx.drawImage(video, sx, sy, scanSize, scanSize, 0, 0, scanSize, scanSize);
+                                const rawResult = zxingReader.decodeFromCanvas(canvas);
+                                if (rawResult && rawResult.text) {
+                                    parseCCCDQR(rawResult.text.trim());
+                                    stopZaloStyleCCCDScanner();
+                                }
+                            } catch(err){}
+                        }
+                    }
+                }, 120);
+
+            } catch (err) {
+                // Fallback nếu camera từ chối tham số nâng cao
+                try {
+                    cccdZaloStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+                    video.srcObject = cccdZaloStream;
+                    await video.play();
+                } catch(e) {
+                    alert("Không thể khởi động Camera. Vui lòng cấp quyền hoặc tải ảnh chụp góc QR từ thư viện máy!");
+                }
+            }
+        }
+
+        function applyZoom(zoomVal) {
+            if (cccdZaloTrack && cccdZaloTrack.applyConstraints) {
+                cccdZaloTrack.applyConstraints({ advanced: [{ zoom: parseFloat(zoomVal) }] }).catch(() => {});
+            }
+        }
+
+        function stopZaloStyleCCCDScanner() {
+            if (cccdZaloInterval) {
+                clearInterval(cccdZaloInterval);
+                cccdZaloInterval = null;
+            }
+            if (cccdZaloStream) {
+                cccdZaloStream.getTracks().forEach(track => track.stop());
+                cccdZaloStream = null;
+                cccdZaloTrack = null;
+            }
+            document.getElementById('qr-cccd-reader-container').style.display = 'none';
+        }
+
+        function scanQRFromFile(input) {
+            if (input.files && input.files[0]) {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.getElementById('qr-preprocess-canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    try {
+                        const result = zxingReader.decodeFromCanvas(canvas);
+                        if (result && result.text) {
+                            parseCCCDQR(result.text.trim());
+                            stopZaloStyleCCCDScanner();
+                        }
+                    } catch(e) {
+                        alert("Không thể giải mã QR từ ảnh. Hãy chụp thật gần, đủ sáng góc chứa mã QR trên thẻ CCCD!");
+                    }
+                };
+                img.src = URL.createObjectURL(input.files[0]);
+            }
+        }
+
+        function formatCCCDDate(dateRaw) {
+            if (!dateRaw || dateRaw.length !== 8) return dateRaw;
+            let d = parseInt(dateRaw.substring(0, 2), 10);
+            let m = parseInt(dateRaw.substring(2, 4), 10);
+            let y = dateRaw.substring(4, 8);
+            return `${d}/${m}/${y}`;
+        }
+
+        function parseCCCDQR(qrData) {
+            let parts = qrData.split('|');
+            if (parts.length >= 6) {
+                let soCCCD = parts[0] || '';
+                let hoTen = parts[2] || '';
+                let ngaySinhRaw = parts[3] || '';
+                let diaChi = parts[5] || '';
+                let ngayCapRaw = parts[6] || '';
+
+                if (document.getElementById('in_cccd')) document.getElementById('in_cccd').value = soCCCD;
+                if (document.getElementById('in_hoten')) document.getElementById('in_hoten').value = hoTen.toUpperCase();
+                if (document.getElementById('in_ngaysinh')) document.getElementById('in_ngaysinh').value = formatCCCDDate(ngaySinhRaw);
+                if (document.getElementById('in_diachi')) document.getElementById('in_diachi').value = diaChi.toUpperCase();
+                if (document.getElementById('in_ngaycap')) document.getElementById('in_ngaycap').value = formatCCCDDate(ngayCapRaw);
+                if (document.getElementById('in_noicap')) document.getElementById('in_noicap').value = "CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI";
+
+                syncData();
+                showToast("✅ Đã cập nhật xong thông tin CCCD!");
+            } else {
+                alert("⚠️ Định dạng QR không phải chuẩn CCCD Việt Nam:\n" + qrData);
             }
         }
 
@@ -937,7 +1140,6 @@
                 fieldScanner = new Html5Qrcode("qr-field-reader");
             }
 
-            // Mở khung hình chữ nhật nằm ngang hỗ trợ trọn vẹn cả Barcode sọc dài 1D và QR 2D
             const config = {
                 fps: 20,
                 qrbox: { width: 300, height: 130 },
@@ -1042,17 +1244,13 @@
             }
         }
 
-        // Thuật toán Canvas Auto-Crop: Tự động phát hiện biên thẻ và xén bỏ mép thừa
         function autoCropCardCanvas(sourceCanvas) {
-            const ctx = sourceCanvas.getContext('2d');
             const w = sourceCanvas.width;
             const h = sourceCanvas.height;
-            const imgData = ctx.getImageData(0, 0, w, h);
-            const data = imgData.data;
 
-            // Cắt gọn thêm 2.5% biên viền mỗi phía để loại bỏ hẳn viền đen/bóng bàn ngoài khung canh
-            const trimX = Math.floor(w * 0.025);
-            const trimY = Math.floor(h * 0.025);
+            // Tự động xén bỏ 3% lề ngoài để loại sạch bóng bàn hoặc viền thừa
+            const trimX = Math.floor(w * 0.03);
+            const trimY = Math.floor(h * 0.03);
 
             const croppedCanvas = document.createElement('canvas');
             croppedCanvas.width = w - (trimX * 2);
@@ -1093,7 +1291,6 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
 
-            // Chạy lệnh tự cắt viền Canvas loại bỏ phần viền thừa
             const finalCroppedCanvas = autoCropCardCanvas(canvas);
             const imgBase64 = finalCroppedCanvas.toDataURL('image/jpeg', 0.95);
 
@@ -1115,121 +1312,6 @@
                 closeCaptureModal();
                 showToast("🎉 Hoàn tất chụp 2 mặt CCCD! Đang chuyển sang Trang 9.");
                 switchPage(9, document.getElementById('btn-tab-9'));
-            }
-        }
-
-        // ================= XỬ LÝ QUÉT QR CCCD (THUẬT TOÁN ĐỘ NÉT CAO NHƯ ZALO) =================
-        function formatCCCDDate(dateRaw) {
-            if (!dateRaw || dateRaw.length !== 8) return dateRaw;
-            let d = parseInt(dateRaw.substring(0, 2), 10);
-            let m = parseInt(dateRaw.substring(2, 4), 10);
-            let y = dateRaw.substring(4, 8);
-            return `${d}/${m}/${y}`;
-        }
-
-        let cccdQrCodeScanner = null;
-
-        function startCCCDScanner() {
-            stopAllRunningCameras();
-            const container = document.getElementById('qr-cccd-reader-container');
-            container.style.display = 'block';
-            container.scrollIntoView({ behavior: 'smooth' });
-
-            if (!cccdQrCodeScanner) {
-                cccdQrCodeScanner = new Html5Qrcode("qr-cccd-reader");
-            }
-
-            // Thuật toán tối ưu tương tự Zalo: Ép camera lấy nét phân giải cao và mở rộng khung nhận diện hạt QR dày
-            const config = {
-                fps: 25,
-                qrbox: { width: 280, height: 280 },
-                aspectRatio: 1.0,
-                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
-            };
-
-            cccdQrCodeScanner.start(
-                { 
-                    facingMode: "environment",
-                    video: {
-                        width: { min: 1280, ideal: 1920 },
-                        height: { min: 720, ideal: 1080 }
-                    }
-                },
-                config,
-                (decodedText) => {
-                    parseCCCDQR(decodedText.trim());
-                    stopCCCDScanner();
-                },
-                (errorMessage) => {}
-            ).catch((err) => {
-                // Fallback nếu máy không hỗ trợ cấu hình phân giải cao
-                cccdQrCodeScanner.start(
-                    { facingMode: "environment" },
-                    { fps: 15, qrbox: { width: 240, height: 240 } },
-                    (decodedText) => {
-                        parseCCCDQR(decodedText.trim());
-                        stopCCCDScanner();
-                    },
-                    (error) => {}
-                ).catch(e => {
-                    alert("Không thể khởi động camera quét CCCD. Hãy bấm dòng bên dưới để tải ảnh chụp góc mã QR từ máy!");
-                });
-            });
-        }
-
-        function stopCCCDScanner() {
-            if (cccdQrCodeScanner) {
-                try {
-                    cccdQrCodeScanner.stop().then(() => {
-                        document.getElementById('qr-cccd-reader-container').style.display = 'none';
-                    }).catch(() => {
-                        document.getElementById('qr-cccd-reader-container').style.display = 'none';
-                    });
-                } catch(e) {
-                    document.getElementById('qr-cccd-reader-container').style.display = 'none';
-                }
-            } else {
-                document.getElementById('qr-cccd-reader-container').style.display = 'none';
-            }
-        }
-
-        function scanQRFromFile(input) {
-            if (input.files && input.files[0]) {
-                const imageFile = input.files[0];
-                if (!cccdQrCodeScanner) {
-                    cccdQrCodeScanner = new Html5Qrcode("qr-cccd-reader");
-                }
-                cccdQrCodeScanner.scanFile(imageFile, true)
-                    .then(decodedText => {
-                        parseCCCDQR(decodedText.trim());
-                        stopCCCDScanner();
-                    })
-                    .catch(err => {
-                        alert("Không tìm thấy mã QR trên ảnh. Vui lòng chụp gần, đủ sáng góc có mã QR trên thẻ CCCD!");
-                    });
-            }
-        }
-
-        function parseCCCDQR(qrData) {
-            let parts = qrData.split('|');
-            if (parts.length >= 6) {
-                let soCCCD = parts[0] || '';
-                let hoTen = parts[2] || '';
-                let ngaySinhRaw = parts[3] || '';
-                let diaChi = parts[5] || '';
-                let ngayCapRaw = parts[6] || '';
-
-                if (document.getElementById('in_cccd')) document.getElementById('in_cccd').value = soCCCD;
-                if (document.getElementById('in_hoten')) document.getElementById('in_hoten').value = hoTen.toUpperCase();
-                if (document.getElementById('in_ngaysinh')) document.getElementById('in_ngaysinh').value = formatCCCDDate(ngaySinhRaw);
-                if (document.getElementById('in_diachi')) document.getElementById('in_diachi').value = diaChi.toUpperCase();
-                if (document.getElementById('in_ngaycap')) document.getElementById('in_ngaycap').value = formatCCCDDate(ngayCapRaw);
-                if (document.getElementById('in_noicap')) document.getElementById('in_noicap').value = "CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI";
-
-                syncData();
-                showToast("✅ Đã cập nhật xong thông tin CCCD!");
-            } else {
-                alert("⚠️ Định dạng QR không phải chuẩn CCCD Việt Nam:\n" + qrData);
             }
         }
 
