@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Biểu Mẫu - Test Trang 1 & Trang 9</title>
-    <!-- Thư viện quét mã QR bằng Camera -->
+    <!-- Thư viện quét mã QR & Barcode đa định dạng -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -103,7 +103,7 @@
             background: #fff;
         }
 
-        /* NÚT QUÉT QR PHỤ */
+        /* NÚT QUÉT MÃ 1D/2D CHO SỐ KHUNG, SỐ MÁY, SERI */
         .input-with-btn {
             display: flex;
             gap: 6px;
@@ -243,7 +243,7 @@
             transform-origin: top center;
         }
 
-        /* GIẤY A4 GỐC CHUẨN MÁY TÍNH - MẶC ĐỊNH ẨN TẤT CẢ, CHỈ HIỆN TRANG ACTIVE */
+        /* GIẤY A4 GỐC CHUẨN MÁY TÍNH */
         .paper-sheet {
             display: none;
             background: white;
@@ -321,7 +321,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f8fafc;
+            background: #ffffff;
             overflow: hidden;
             box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
@@ -329,7 +329,7 @@
         .cccd-card-box img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: fill;
             display: block;
         }
 
@@ -340,7 +340,7 @@
             text-align: center;
         }
 
-        /* HỆ THỐNG THÔNG BÁO TỰ TẮT THAY CHO ALERT (TRÁNH ĐƠ CAMERA) */
+        /* THÔNG BÁO TỰ TẮT */
         #custom-toast {
             position: fixed;
             bottom: 30px;
@@ -498,7 +498,6 @@
                 margin: 0 !important;
             }
 
-            /* TRẢ LẠI 100% THÔNG SỐ GỐC MÁY TÍNH KHI IN */
             .paper-sheet {
                 box-sizing: border-box !important;
                 width: 210mm !important;
@@ -514,7 +513,6 @@
                 break-after: page !important;
             }
 
-            /* CHỈ IN TRANG ĐANG CHỌN (ACTIVE) */
             .paper-sheet { display: none !important; }
             .paper-sheet.active { display: block !important; }
 
@@ -597,7 +595,7 @@
                 📸 Chụp Ảnh 2 Mặt CCCD (In Trang 9)
             </button>
 
-            <!-- KHUNG CAMERA QUÉT QR CCCD (ĐÃ FIX LỖI TƯƠNG THÍCH TRÌNH DUYỆT) -->
+            <!-- KHUNG CAMERA QUÉT QR CCCD -->
             <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #7c3aed;">
                 <div style="color: #c4b5fd; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">
                     Đưa mã QR ở góc thẻ CCCD vào giữa khung vuông để quét
@@ -614,7 +612,7 @@
                 <button type="button" onclick="stopCCCDScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
-            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD -->
+            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD (TỰ CẮT VIỀN CHỈ LẤY THẺ) -->
             <div id="camera-capture-container" style="display: none; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #0284c7; margin-bottom: 10px;">
                 <div id="capture-step-title" style="color: #38bdf8; font-weight: bold; font-size: 14px; text-align: center;">Đang chụp: MẶT TRƯỚC CCCD</div>
                 
@@ -626,7 +624,7 @@
                     </div>
                 </div>
 
-                <button type="button" id="btn-snap-photo" onclick="snapCurrentStep()" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;">📸 Bấm Chụp</button>
+                <button type="button" id="btn-snap-photo" onclick="snapCurrentStep()" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer;">📸 Bấm Chụp (Tự Cắt Viền)</button>
                 <button type="button" onclick="closeCaptureModal()" style="width: 100%; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">Hủy / Đóng Camera</button>
             </div>
 
@@ -667,9 +665,9 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT CAMERA CHUNG CHO SỐ KHUNG / SỐ MÁY / SERI SẠC -->
+            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D (MÃ VẠCH SỌC) VÀ 2D (QR) -->
             <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
-                <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét mã QR...</div>
+                <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét mã 1D / 2D...</div>
                 <div id="qr-field-reader" style="width: 100%;"></div>
                 <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 6px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
@@ -690,7 +688,7 @@
                 <label>Số khung (SK)</label>
                 <div class="input-with-btn">
                     <input type="text" id="in_sk" value="702436" oninput="syncData()">
-                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_sk', 'Số khung (SK)')">📷 Quét QR</button>
+                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_sk', 'Số khung (SK)')">📷 Quét 1D/2D</button>
                 </div>
             </div>
 
@@ -699,7 +697,7 @@
                 <label>Số máy (SM)</label>
                 <div class="input-with-btn">
                     <input type="text" id="in_sm" value="250212" oninput="syncData()">
-                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_sm', 'Số máy (SM)')">📷 Quét QR</button>
+                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_sm', 'Số máy (SM)')">📷 Quét 1D/2D</button>
                 </div>
             </div>
 
@@ -708,7 +706,7 @@
                 <label>Số seri sạc</label>
                 <div class="input-with-btn">
                     <input type="text" id="in_serisac" value="DRT00011629GB0003001260811D06705" oninput="syncData()">
-                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_serisac', 'Số seri sạc')">📷 Quét QR</button>
+                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_serisac', 'Số seri sạc')">📷 Quét 1D/2D</button>
                 </div>
             </div>
 
@@ -846,14 +844,13 @@
         </div>
     </div>
 
-    <!-- HỘP THÔNG BÁO TỰ TẮT (TOAST THÔNG MINH KHÔNG LÀM TREO CAMERA) -->
+    <!-- HỘP THÔNG BÁO TỰ TẮT -->
     <div id="custom-toast"></div>
 
-    <!-- Canvas ảo dùng để xử lý cắt khung ảnh tỷ lệ vàng -->
+    <!-- Canvas ảo dùng để xử lý cắt viền tự động -->
     <canvas id="hidden-capture-canvas" style="display: none;"></canvas>
 
     <script>
-        // HÀM HIỂN THỊ THÔNG BÁO TỰ TẮT KHÔNG GÂY ĐƠ CAMERA TRÊN MOBI
         function showToast(msg, duration = 2500) {
             const toast = document.getElementById('custom-toast');
             toast.innerText = msg;
@@ -863,7 +860,6 @@
             }, duration);
         }
 
-        // HÀM TỰ ĐỘNG THU PHÓNG TỜ A4 VỪA KHÍT 100% CHIỀU NGANG VÀ DÀI MÀN HÌNH
         function autoScaleA4Preview() {
             const wrapper = document.getElementById('a4-scale-wrapper');
             const container = document.getElementById('preview-panel-container');
@@ -908,7 +904,6 @@
             autoScaleA4Preview();
         }
 
-        // HÀM TẮT TẤT CẢ CÁC CAMERA ĐANG CHẠY TRÁNH ĐỤNG ĐỘ PHẦN CỨNG
         function stopAllRunningCameras() {
             if (captureStream) {
                 captureStream.getTracks().forEach(track => track.stop());
@@ -925,16 +920,16 @@
             }
         }
 
-        // ================= XỬ LÝ QUÉT QR CHO CÁC Ô RIÊNG LẺ =================
+        // ================= XỬ LÝ QUÉT ĐA ĐỊNH DẠNG 1D (BARCODE) & 2D (QR CODE) =================
         let fieldScanner = null;
         let currentTargetFieldId = null;
 
         function startFieldScanner(fieldId, fieldLabel) {
-            stopAllRunningCameras(); // Giải phóng camera trước
+            stopAllRunningCameras();
             currentTargetFieldId = fieldId;
             const container = document.getElementById('qr-field-scanner-container');
             const title = document.getElementById('qr-field-scan-title');
-            title.innerText = "Đang quét mã QR: " + fieldLabel;
+            title.innerText = "Đưa mã vạch 1D hoặc mã QR của " + fieldLabel + " vào khung chữ nhật";
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
 
@@ -942,9 +937,25 @@
                 fieldScanner = new Html5Qrcode("qr-field-reader");
             }
 
+            // Mở khung hình chữ nhật nằm ngang hỗ trợ trọn vẹn cả Barcode sọc dài 1D và QR 2D
+            const config = {
+                fps: 20,
+                qrbox: { width: 300, height: 130 },
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX
+                ]
+            };
+
             fieldScanner.start(
                 { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 250, height: 250 } },
+                config,
                 (decodedText) => {
                     const cleanVal = decodedText.trim();
                     const targetInput = document.getElementById(currentTargetFieldId);
@@ -953,7 +964,7 @@
                         syncData();
                     }
                     stopFieldScanner();
-                    showToast(`✅ Đã quét mã cho ${fieldLabel}!`);
+                    showToast(`✅ Đã quét xong mã cho ${fieldLabel}!`);
                 },
                 (errorMessage) => {}
             ).catch((err) => {
@@ -974,23 +985,26 @@
             }
         }
 
-        // ================= XỬ LÝ CHỤP ẢNH 2 MẶT CCCD (KHÔNG DÙNG ALERT - KHÔNG BỊ ĐƠ) =================
+        // ================= XỬ LÝ CHỤP ẢNH TỰ ĐỘNG CẮT VIỀN (AUTO CROP CANVA) =================
         let captureStream = null;
         let currentCaptureStep = 1;
         let frontImageBase64 = null;
         let backImageBase64 = null;
 
         async function openCaptureModal() {
-            stopAllRunningCameras(); // Giải phóng camera trước
+            stopAllRunningCameras();
             const container = document.getElementById('camera-capture-container');
             const video = document.getElementById('capture-video');
             currentCaptureStep = 1;
             updateCaptureStepUI();
 
             try {
-                // Yêu cầu camera chuẩn tương thích với mọi loại máy điện thoại
                 captureStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: "environment" } },
+                    video: { 
+                        facingMode: { ideal: "environment" },
+                        width: { min: 1280, ideal: 1920 },
+                        height: { min: 720, ideal: 1080 }
+                    },
                     audio: false
                 });
                 video.srcObject = captureStream;
@@ -1019,13 +1033,39 @@
                 title.innerText = "📸 BƯỚC 1/2: ĐANG CHỤP MẶT TRƯỚC CCCD";
                 title.style.color = "#38bdf8";
                 btnSnap.innerText = "📸 Bấm Chụp Mặt Trước";
-                guideText.innerText = "Đặt MẶT TRƯỚC vào khung này";
+                guideText.innerText = "Đặt MẶT TRƯỚC vào khung (Tự cắt viền)";
             } else {
                 title.innerText = "📸 BƯỚC 2/2: ĐANG CHỤP MẶT SAU CCCD";
                 title.style.color = "#f59e0b";
                 btnSnap.innerText = "📸 Bấm Chụp Mặt Sau";
-                guideText.innerText = "Lật MẶT SAU vào khung này";
+                guideText.innerText = "Lật MẶT SAU vào khung (Tự cắt viền)";
             }
+        }
+
+        // Thuật toán Canvas Auto-Crop: Tự động phát hiện biên thẻ và xén bỏ mép thừa
+        function autoCropCardCanvas(sourceCanvas) {
+            const ctx = sourceCanvas.getContext('2d');
+            const w = sourceCanvas.width;
+            const h = sourceCanvas.height;
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+
+            // Cắt gọn thêm 2.5% biên viền mỗi phía để loại bỏ hẳn viền đen/bóng bàn ngoài khung canh
+            const trimX = Math.floor(w * 0.025);
+            const trimY = Math.floor(h * 0.025);
+
+            const croppedCanvas = document.createElement('canvas');
+            croppedCanvas.width = w - (trimX * 2);
+            croppedCanvas.height = h - (trimY * 2);
+
+            const cropCtx = croppedCanvas.getContext('2d');
+            cropCtx.drawImage(
+                sourceCanvas, 
+                trimX, trimY, croppedCanvas.width, croppedCanvas.height, 
+                0, 0, croppedCanvas.width, croppedCanvas.height
+            );
+
+            return croppedCanvas;
         }
 
         function snapCurrentStep() {
@@ -1037,11 +1077,11 @@
             const vw = video.videoWidth;
             const vh = video.videoHeight;
 
-            let cropW = vw * 0.90;
+            let cropW = vw * 0.88;
             let cropH = cropW / cardAspectRatio;
 
-            if (cropH > vh * 0.85) {
-                cropH = vh * 0.85;
+            if (cropH > vh * 0.82) {
+                cropH = vh * 0.82;
                 cropW = cropH * cardAspectRatio;
             }
 
@@ -1053,7 +1093,9 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
 
-            const imgBase64 = canvas.toDataURL('image/jpeg', 0.95);
+            // Chạy lệnh tự cắt viền Canvas loại bỏ phần viền thừa
+            const finalCroppedCanvas = autoCropCardCanvas(canvas);
+            const imgBase64 = finalCroppedCanvas.toDataURL('image/jpeg', 0.95);
 
             if (currentCaptureStep === 1) {
                 frontImageBase64 = imgBase64;
@@ -1061,10 +1103,9 @@
                 document.getElementById('img-front-view').style.display = 'block';
                 document.getElementById('txt-front-empty').style.display = 'none';
 
-                // Chuyển ngay sang bước 2, tuyệt đối không dùng alert để video chạy liên tục
                 currentCaptureStep = 2;
                 updateCaptureStepUI();
-                showToast("✅ Đã chụp Mặt Trước! Hãy đưa MẶT SAU vào khung bấm chụp.");
+                showToast("✅ Đã chụp & cắt viền Mặt Trước! Lật MẶT SAU chụp tiếp.");
             } else {
                 backImageBase64 = imgBase64;
                 document.getElementById('img-back-view').src = backImageBase64;
@@ -1077,7 +1118,7 @@
             }
         }
 
-        // ================= XỬ LÝ QUÉT QR CCCD (ĐÃ TỐI ƯU TƯƠNG THÍCH MÁY YẾU / MỜ) =================
+        // ================= XỬ LÝ QUÉT QR CCCD (THUẬT TOÁN ĐỘ NÉT CAO NHƯ ZALO) =================
         function formatCCCDDate(dateRaw) {
             if (!dateRaw || dateRaw.length !== 8) return dateRaw;
             let d = parseInt(dateRaw.substring(0, 2), 10);
@@ -1089,7 +1130,7 @@
         let cccdQrCodeScanner = null;
 
         function startCCCDScanner() {
-            stopAllRunningCameras(); // Giải phóng camera trước
+            stopAllRunningCameras();
             const container = document.getElementById('qr-cccd-reader-container');
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
@@ -1098,15 +1139,22 @@
                 cccdQrCodeScanner = new Html5Qrcode("qr-cccd-reader");
             }
 
-            // Cấu hình tương thích cao, tránh crash trên Safari/Android
+            // Thuật toán tối ưu tương tự Zalo: Ép camera lấy nét phân giải cao và mở rộng khung nhận diện hạt QR dày
             const config = {
-                fps: 15,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                fps: 25,
+                qrbox: { width: 280, height: 280 },
+                aspectRatio: 1.0,
+                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
             };
 
             cccdQrCodeScanner.start(
-                { facingMode: "environment" },
+                { 
+                    facingMode: "environment",
+                    video: {
+                        width: { min: 1280, ideal: 1920 },
+                        height: { min: 720, ideal: 1080 }
+                    }
+                },
                 config,
                 (decodedText) => {
                     parseCCCDQR(decodedText.trim());
@@ -1114,7 +1162,18 @@
                 },
                 (errorMessage) => {}
             ).catch((err) => {
-                alert("Camera không thể khởi động. Bạn có thể bấm dòng chữ bên dưới để chọn ảnh chụp mã QR từ máy!");
+                // Fallback nếu máy không hỗ trợ cấu hình phân giải cao
+                cccdQrCodeScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 15, qrbox: { width: 240, height: 240 } },
+                    (decodedText) => {
+                        parseCCCDQR(decodedText.trim());
+                        stopCCCDScanner();
+                    },
+                    (error) => {}
+                ).catch(e => {
+                    alert("Không thể khởi động camera quét CCCD. Hãy bấm dòng bên dưới để tải ảnh chụp góc mã QR từ máy!");
+                });
             });
         }
 
