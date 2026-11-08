@@ -235,6 +235,14 @@
             align-items: flex-start;
         }
 
+        /* KHUNG THU PHÓNG TỶ LỆ A4 */
+        .a4-scale-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            transform-origin: top center;
+        }
+
         /* GIẤY A4 GỐC CHUẨN MÁY TÍNH - MẶC ĐỊNH ẨN TẤT CẢ, CHỈ HIỆN TRANG ACTIVE */
         .paper-sheet {
             display: none;
@@ -332,6 +340,28 @@
             text-align: center;
         }
 
+        /* HỆ THỐNG THÔNG BÁO TỰ TẮT THAY CHO ALERT (TRÁNH ĐƠ CAMERA) */
+        #custom-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: bold;
+            z-index: 99999;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            display: none;
+            text-align: center;
+            max-width: 90%;
+            border: 1px solid #38bdf8;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; bottom: 10px; } to { opacity: 1; bottom: 30px; } }
+
         /* ================= CHẾ ĐỘ MOBI APP ================= */
         @media screen {
             body.is-mobile-app {
@@ -424,56 +454,17 @@
             body.is-mobile-app .tab-btn { font-size: 17px !important; padding: 12px 3px !important; }
             body.is-mobile-app .btn-print-submit { font-size: 21px !important; padding: 16px !important; }
 
-            /* VÙNG CHỨA BẢN XEM TRƯỚC */
+            /* VÙNG CHỨA BẢN XEM TRƯỚC TRÊN MOBILE: KHỚP VỪA VẶN MÀN HÌNH */
             body.is-mobile-app .preview-panel {
                 order: 2 !important;
                 width: 100% !important;
                 max-width: 100vw !important;
-                padding: 14px 8px 30px 8px !important;
-                overflow-x: hidden !important;
-                overflow-y: visible !important;
-                display: block !important;
+                padding: 15px 8px 35px 8px !important;
+                overflow: visible !important;
+                display: flex !important;
+                justify-content: center !important;
                 background: #cbd5e1 !important;
                 border-top: 2px dashed #94a3b8;
-            }
-
-            /* CẤU HÌNH TỶ LỆ KHỚP CHUẨN A4 */
-            body.is-mobile-app .paper-sheet {
-                width: 100% !important;
-                min-width: 0 !important;
-                max-width: 100% !important;
-                aspect-ratio: 210 / 297 !important;
-                min-height: calc((100vw - 16px) * 1.414) !important;
-                padding: 16px 12px !important;
-                font-size: 12px !important;
-                line-height: 1.4 !important;
-                margin: 0 auto !important;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-                border-radius: 6px !important;
-            }
-
-            body.is-mobile-app .paper-sheet.active {
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: space-between !important;
-            }
-
-            body.is-mobile-app .header-box-ch { padding: 5px 6px !important; font-size: 10.5px !important; }
-            body.is-mobile-app .header-right { margin-left: -10px !important; }
-            body.is-mobile-app .header-right h3 { font-size: 13px !important; }
-            body.is-mobile-app .header-right h2 { font-size: 17px !important; }
-            body.is-mobile-app .header-right p { font-size: 11px !important; }
-            body.is-mobile-app .sign-space { height: 90px !important; }
-
-            /* Xem trước trang 9 trên điện thoại khớp chiều dọc A4 */
-            body.is-mobile-app .cccd-print-page.active {
-                padding: 24px 12px !important;
-                gap: 20px !important;
-                justify-content: space-around !important;
-            }
-            body.is-mobile-app .cccd-card-box {
-                width: 270px !important;
-                height: 170px !important;
             }
         }
 
@@ -486,7 +477,7 @@
                 overflow: visible !important;
             }
 
-            .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container {
+            .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container, #custom-toast {
                 display: none !important;
             }
 
@@ -498,6 +489,13 @@
                 border: none !important;
                 background: white !important;
                 overflow: visible !important;
+            }
+
+            .a4-scale-wrapper {
+                transform: none !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                margin: 0 !important;
             }
 
             /* TRẢ LẠI 100% THÔNG SỐ GỐC MÁY TÍNH KHI IN */
@@ -599,10 +597,10 @@
                 📸 Chụp Ảnh 2 Mặt CCCD (In Trang 9)
             </button>
 
-            <!-- KHUNG CAMERA QUÉT QR CCCD -->
+            <!-- KHUNG CAMERA QUÉT QR CCCD (ĐÃ FIX LỖI TƯƠNG THÍCH TRÌNH DUYỆT) -->
             <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #7c3aed;">
                 <div style="color: #c4b5fd; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">
-                    Đưa mã QR ở góc thẻ CCCD vào sát tâm ô vuông để quét
+                    Đưa mã QR ở góc thẻ CCCD vào giữa khung vuông để quét
                 </div>
                 <div id="qr-cccd-reader" style="width: 100%;"></div>
                 
@@ -616,17 +614,15 @@
                 <button type="button" onclick="stopCCCDScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
-            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD (CẦM DỌC ĐIỆN THOẠI CHỤP) -->
+            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD -->
             <div id="camera-capture-container" style="display: none; flex-direction: column; gap: 8px; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #0284c7; margin-bottom: 10px;">
                 <div id="capture-step-title" style="color: #38bdf8; font-weight: bold; font-size: 14px; text-align: center;">Đang chụp: MẶT TRƯỚC CCCD</div>
                 
-                <!-- Khung camera dọc có khung viền ngang hướng dẫn canh thẻ -->
                 <div id="capture-viewport" style="position: relative; width: 100%; max-width: 360px; margin: 0 auto; border-radius: 6px; overflow: hidden; background: #000;">
-                    <video id="capture-video" autoplay playsinline style="width: 100%; display: block; object-fit: cover;"></video>
+                    <video id="capture-video" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover;"></video>
                     
-                    <!-- Khung viền ngang chuẩn tỷ lệ ID-1 căn giữa màn hình dọc -->
                     <div id="capture-guide-box" style="position: absolute; top: 50%; left: 5%; width: 90%; aspect-ratio: 85.6 / 53.98; transform: translateY(-50%); border: 2.5px dashed #22c55e; border-radius: 6px; pointer-events: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);">
-                        <span style="color: #ffffff; font-size: 12px; font-weight: bold; background: rgba(34, 197, 94, 0.85); padding: 4px 8px; border-radius: 4px;">Đặt thẻ nằm ngang vào khung này</span>
+                        <span id="guide-box-text" style="color: #ffffff; font-size: 12px; font-weight: bold; background: rgba(34, 197, 94, 0.85); padding: 4px 8px; border-radius: 4px;">Đặt thẻ nằm ngang vào khung này</span>
                     </div>
                 </div>
 
@@ -761,97 +757,132 @@
                 <button type="button" class="btn-print-submit" onclick="window.print()">🖨️ IN MẪU ĐANG CHỌN</button>
             </div>
 
-            <!-- CỘT XEM TRƯỚC -->
-            <div class="preview-panel">
+            <!-- CỘT XEM TRƯỚC (SCALE VỪA KHÍT TỜ A4) -->
+            <div class="preview-panel" id="preview-panel-container">
+                <div class="a4-scale-wrapper" id="a4-scale-wrapper">
 
-                <!-- TRANG 1: BIÊN NHẬN -->
-                <div id="page-view-1" class="paper-sheet active">
-                    <div class="header-2col">
-                        <div style="width: max-content;">
-                            <div class="header-box-ch">
-                                <h3 id="out_ten_ch" style="font-weight: bold;">VINFAST QUANG VINH 8</h3>
-                                <p>Số 127 đường 14/10, TT Tiền Hải</p>
-                                <p>ĐT: 0929.116.288</p>
-                                <p>Liên hệ vào giờ hành chính</p>
+                    <!-- TRANG 1: BIÊN NHẬN -->
+                    <div id="page-view-1" class="paper-sheet active">
+                        <div class="header-2col">
+                            <div style="width: max-content;">
+                                <div class="header-box-ch">
+                                    <h3 id="out_ten_ch" style="font-weight: bold;">VINFAST QUANG VINH 8</h3>
+                                    <p>Số 127 đường 14/10, TT Tiền Hải</p>
+                                    <p>ĐT: 0929.116.288</p>
+                                    <p>Liên hệ vào giờ hành chính</p>
+                                </div>
+                            </div>
+                            <div class="header-right">
+                                <h3 style="font-size: 15px; font-weight: bold;">Công ty TNHH KD-DV Quang Vinh</h3>
+                                <h2 style="font-size: 19px; font-weight: bold; margin: 2px 0;">PHIẾU BIÊN NHẬN</h2>
+                                <p style="font-size: 13px;">Quý khách hài lòng hãy nói với mọi người</p>
+                                <p style="font-size: 13px;">Quý khách không hài lòng hãy nói với chúng tôi</p>
                             </div>
                         </div>
-                        <div class="header-right">
-                            <h3 style="font-size: 15px; font-weight: bold;">Công ty TNHH KD-DV Quang Vinh</h3>
-                            <h2 style="font-size: 19px; font-weight: bold; margin: 2px 0;">PHIẾU BIÊN NHẬN</h2>
-                            <p style="font-size: 13px;">Quý khách hài lòng hãy nói với mọi người</p>
-                            <p style="font-size: 13px;">Quý khách không hài lòng hãy nói với chúng tôi</p>
+
+                        <div class="date-hd-row">
+                            <span>HD: <span id="out_sohd" style="color: red;">1042</span></span>
+                            <span>Tiền Hải, ngày <span id="out_ngay" style="color: red;">08/11/2026</span></span>
+                        </div>
+
+                        <div class="line-item"><span class="bold">Họ và tên khách hàng :</span> <span id="out_hoten" class="bold" style="color: red;">NGUYỄN THỊ CÚC</span></div>
+                        <div class="line-item"><span class="bold">SĐT:</span> <span id="out_sdt" style="color: red;">0387144897</span></div>
+                        <div class="line-item"><span class="bold">Địa Chỉ :</span> <span id="out_diachi" class="bold" style="color: red;">XÃ TIỀN HẢI ,TỈNH HƯNG YÊN</span></div>
+                        <div class="line-item">
+                            <span class="bold">Loại xe:</span> <span id="out_loaixe" class="bold" style="color: red;">EVO GRAND LITE</span> &nbsp;&nbsp;&nbsp;&nbsp;
+                            <span class="bold">MÀU :</span> <span id="out_mausac" class="bold" style="color: red;">TRẮNG</span> &nbsp;&nbsp;&nbsp;&nbsp;
+                            <span class="bold">SK :</span> <span id="out_sk" class="bold" style="color: red;">702436</span> &nbsp;&nbsp;&nbsp;&nbsp;
+                            <span class="bold">SM :</span> <span id="out_sm" class="bold" style="color: red;">250212</span>
+                        </div>
+                        <div class="line-item"><span class="bold">PIN (kèm xe):</span> <span id="out_pin" style="color: red;">Kèm theo xe</span></div>
+
+                        <div style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0;">
+                            LƯU Ý: Giao xe luôn đầy đủ phụ kiện, PIN, sạc, gương và sổ hướng dẫn
+                        </div>
+
+                        <div class="line-item"><span class="bold">Tổng số tiền phải thanh toán :</span> <span id="out_tongtien" class="bold" style="color: red;">15.600.000 VNĐ</span></div>
+                        <div class="line-item"><span class="bold">Số tiền đã thanh toán:</span> <span id="out_dathanhtoan" class="bold" style="color: red;">15.600.000 VNĐ (NGUYÊN XE+DKY+THẢM)</span></div>
+                        <div class="line-item"><span class="bold">Số tiền KH còn nợ lại:</span> <span id="out_conno" class="bold" style="color: red;">0 VNĐ</span></div>
+                        <div class="line-item bold" style="margin-top:6px;">SỐ TK: 47110001227638 &nbsp;&nbsp;&nbsp;&nbsp; BIDV TRỊNH THỊ LAN</div>
+
+                        <div class="line-item" style="margin: 8px 0;">
+                            <span class="bold">Lý do thu / Ghi chú:</span> <span id="out_ghichu" class="bold" style="color: red;">NỢ HÓA ĐƠN + ĐĂNG KIỂM</span>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 10px; font-weight: bold;">
+                            <div>Khách hàng ký xác nhận<div class="sign-space"></div></div>
+                            <div>CHT ký xác nhận<div class="sign-space"></div></div>
+                        </div>
+
+                        <div style="background: #d1d5db; color: #000; padding: 5px 8px; margin-top: 10px; text-align: center; border: 1px solid #000;">
+                            <p style="font-weight: bold; font-size: 11.5px; margin: 0;">Biển số & đăng ký xe phụ thuộc vào CA khi có cửa hàng sẽ chủ động liên hệ KH qua lấy</p>
+                            <p style="font-weight: bold; font-size: 11.5px; margin: 2px 0 0 0;">ĐT TƯ VẤN: 0904.388.299 (gọi giờ hành chính)</p>
                         </div>
                     </div>
 
-                    <div class="date-hd-row">
-                        <span>HD: <span id="out_sohd" style="color: red;">1042</span></span>
-                        <span>Tiền Hải, ngày <span id="out_ngay" style="color: red;">08/11/2026</span></span>
+                    <!-- TRANG 9: IN 2 MẶT CCCD CHUẨN TỶ LỆ VÀNG SCAN TRÊN 1 MẶT A4 -->
+                    <div id="page-view-9" class="paper-sheet cccd-print-page">
+                        <!-- MẶT TRƯỚC -->
+                        <div class="cccd-card-wrapper">
+                            <div class="cccd-card-label">MẶT TRƯỚC CĂN CƯỚC CÔNG DÂN</div>
+                            <div class="cccd-card-box">
+                                <img id="img-front-view" style="display: none;" alt="Mặt trước CCCD">
+                                <span id="txt-front-empty" class="cccd-placeholder-text">Chưa chụp ảnh mặt trước</span>
+                            </div>
+                        </div>
+
+                        <!-- MẶT SAU -->
+                        <div class="cccd-card-wrapper">
+                            <div class="cccd-card-label">MẶT SAU CĂN CƯỚC CÔNG DÂN</div>
+                            <div class="cccd-card-box">
+                                <img id="img-back-view" style="display: none;" alt="Mặt sau CCCD">
+                                <span id="txt-back-empty" class="cccd-placeholder-text">Chưa chụp ảnh mặt sau</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="line-item"><span class="bold">Họ và tên khách hàng :</span> <span id="out_hoten" class="bold" style="color: red;">NGUYỄN THỊ CÚC</span></div>
-                    <div class="line-item"><span class="bold">SĐT:</span> <span id="out_sdt" style="color: red;">0387144897</span></div>
-                    <div class="line-item"><span class="bold">Địa Chỉ :</span> <span id="out_diachi" class="bold" style="color: red;">XÃ TIỀN HẢI ,TỈNH HƯNG YÊN</span></div>
-                    <div class="line-item">
-                        <span class="bold">Loại xe:</span> <span id="out_loaixe" class="bold" style="color: red;">EVO GRAND LITE</span> &nbsp;&nbsp;&nbsp;&nbsp;
-                        <span class="bold">MÀU :</span> <span id="out_mausac" class="bold" style="color: red;">TRẮNG</span> &nbsp;&nbsp;&nbsp;&nbsp;
-                        <span class="bold">SK :</span> <span id="out_sk" class="bold" style="color: red;">702436</span> &nbsp;&nbsp;&nbsp;&nbsp;
-                        <span class="bold">SM :</span> <span id="out_sm" class="bold" style="color: red;">250212</span>
-                    </div>
-                    <div class="line-item"><span class="bold">PIN (kèm xe):</span> <span id="out_pin" style="color: red;">Kèm theo xe</span></div>
-
-                    <div style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0;">
-                        LƯU Ý: Giao xe luôn đầy đủ phụ kiện, PIN, sạc, gương và sổ hướng dẫn
-                    </div>
-
-                    <div class="line-item"><span class="bold">Tổng số tiền phải thanh toán :</span> <span id="out_tongtien" class="bold" style="color: red;">15.600.000 VNĐ</span></div>
-                    <div class="line-item"><span class="bold">Số tiền đã thanh toán:</span> <span id="out_dathanhtoan" class="bold" style="color: red;">15.600.000 VNĐ (NGUYÊN XE+DKY+THẢM)</span></div>
-                    <div class="line-item"><span class="bold">Số tiền KH còn nợ lại:</span> <span id="out_conno" class="bold" style="color: red;">0 VNĐ</span></div>
-                    <div class="line-item bold" style="margin-top:6px;">SỐ TK: 47110001227638 &nbsp;&nbsp;&nbsp;&nbsp; BIDV TRỊNH THỊ LAN</div>
-
-                    <div class="line-item" style="margin: 8px 0;">
-                        <span class="bold">Lý do thu / Ghi chú:</span> <span id="out_ghichu" class="bold" style="color: red;">NỢ HÓA ĐƠN + ĐĂNG KIỂM</span>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 10px; font-weight: bold;">
-                        <div>Khách hàng ký xác nhận<div class="sign-space"></div></div>
-                        <div>CHT ký xác nhận<div class="sign-space"></div></div>
-                    </div>
-
-                    <div style="background: #d1d5db; color: #000; padding: 5px 8px; margin-top: 10px; text-align: center; border: 1px solid #000;">
-                        <p style="font-weight: bold; font-size: 11.5px; margin: 0;">Biển số & đăng ký xe phụ thuộc vào CA khi có cửa hàng sẽ chủ động liên hệ KH qua lấy</p>
-                        <p style="font-weight: bold; font-size: 11.5px; margin: 2px 0 0 0;">ĐT TƯ VẤN: 0904.388.299 (gọi giờ hành chính)</p>
-                    </div>
                 </div>
-
-                <!-- TRANG 9: IN 2 MẶT CCCD CHUẨN TỶ LỆ VÀNG SCAN TRÊN 1 MẶT A4 -->
-                <div id="page-view-9" class="paper-sheet cccd-print-page">
-                    <!-- MẶT TRƯỚC -->
-                    <div class="cccd-card-wrapper">
-                        <div class="cccd-card-label">MẶT TRƯỚC CĂN CƯỚC CÔNG DÂN</div>
-                        <div class="cccd-card-box">
-                            <img id="img-front-view" style="display: none;" alt="Mặt trước CCCD">
-                            <span id="txt-front-empty" class="cccd-placeholder-text">Chưa chụp ảnh mặt trước</span>
-                        </div>
-                    </div>
-
-                    <!-- MẶT SAU -->
-                    <div class="cccd-card-wrapper">
-                        <div class="cccd-card-label">MẶT SAU CĂN CƯỚC CÔNG DÂN</div>
-                        <div class="cccd-card-box">
-                            <img id="img-back-view" style="display: none;" alt="Mặt sau CCCD">
-                            <span id="txt-back-empty" class="cccd-placeholder-text">Chưa chụp ảnh mặt sau</span>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
+
+    <!-- HỘP THÔNG BÁO TỰ TẮT (TOAST THÔNG MINH KHÔNG LÀM TREO CAMERA) -->
+    <div id="custom-toast"></div>
 
     <!-- Canvas ảo dùng để xử lý cắt khung ảnh tỷ lệ vàng -->
     <canvas id="hidden-capture-canvas" style="display: none;"></canvas>
 
     <script>
+        // HÀM HIỂN THỊ THÔNG BÁO TỰ TẮT KHÔNG GÂY ĐƠ CAMERA TRÊN MOBI
+        function showToast(msg, duration = 2500) {
+            const toast = document.getElementById('custom-toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, duration);
+        }
+
+        // HÀM TỰ ĐỘNG THU PHÓNG TỜ A4 VỪA KHÍT 100% CHIỀU NGANG VÀ DÀI MÀN HÌNH
+        function autoScaleA4Preview() {
+            const wrapper = document.getElementById('a4-scale-wrapper');
+            const container = document.getElementById('preview-panel-container');
+            if (!wrapper || !container) return;
+
+            if (document.body.classList.contains('is-mobile-app')) {
+                const containerWidth = container.clientWidth - 16;
+                const a4StandardPx = 794; // 210mm
+                const a4StandardHeightPx = 1123; // 297mm
+                const scaleRatio = containerWidth / a4StandardPx;
+
+                wrapper.style.transform = `scale(${scaleRatio})`;
+                wrapper.style.marginBottom = `-${(a4StandardHeightPx * (1 - scaleRatio))}px`;
+            } else {
+                wrapper.style.transform = 'none';
+                wrapper.style.marginBottom = '0px';
+            }
+        }
+
         document.getElementById('btn-toggle-mode').addEventListener('click', function() {
             document.body.classList.toggle('is-mobile-app');
             if (document.body.classList.contains('is-mobile-app')) {
@@ -859,7 +890,10 @@
             } else {
                 this.innerText = '📱 Chuyển sang Giao diện Mobi App';
             }
+            setTimeout(autoScaleA4Preview, 50);
         });
+
+        window.addEventListener('resize', autoScaleA4Preview);
 
         function switchPage(pageIndex, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -871,6 +905,24 @@
             if (targetPage) {
                 targetPage.classList.add('active');
             }
+            autoScaleA4Preview();
+        }
+
+        // HÀM TẮT TẤT CẢ CÁC CAMERA ĐANG CHẠY TRÁNH ĐỤNG ĐỘ PHẦN CỨNG
+        function stopAllRunningCameras() {
+            if (captureStream) {
+                captureStream.getTracks().forEach(track => track.stop());
+                captureStream = null;
+                document.getElementById('camera-capture-container').style.display = 'none';
+            }
+            if (cccdQrCodeScanner) {
+                try { cccdQrCodeScanner.stop(); } catch(e){}
+                document.getElementById('qr-cccd-reader-container').style.display = 'none';
+            }
+            if (fieldScanner) {
+                try { fieldScanner.stop(); } catch(e){}
+                document.getElementById('qr-field-scanner-container').style.display = 'none';
+            }
         }
 
         // ================= XỬ LÝ QUÉT QR CHO CÁC Ô RIÊNG LẺ =================
@@ -878,6 +930,7 @@
         let currentTargetFieldId = null;
 
         function startFieldScanner(fieldId, fieldLabel) {
+            stopAllRunningCameras(); // Giải phóng camera trước
             currentTargetFieldId = fieldId;
             const container = document.getElementById('qr-field-scanner-container');
             const title = document.getElementById('qr-field-scan-title');
@@ -900,11 +953,11 @@
                         syncData();
                     }
                     stopFieldScanner();
-                    alert(`✅ Đã quét thành công mã QR cho ${fieldLabel}:\n` + cleanVal);
+                    showToast(`✅ Đã quét mã cho ${fieldLabel}!`);
                 },
                 (errorMessage) => {}
             ).catch((err) => {
-                alert("Không thể khởi động camera. Vui lòng cấp quyền truy cập Camera cho trình duyệt!");
+                alert("Không thể khởi động camera quét!");
                 container.style.display = 'none';
             });
         }
@@ -921,33 +974,31 @@
             }
         }
 
-        // ================= XỬ LÝ CHỤP ẢNH 2 MẶT CCCD KHI CẦM DỌC ĐIỆN THOẠI =================
+        // ================= XỬ LÝ CHỤP ẢNH 2 MẶT CCCD (KHÔNG DÙNG ALERT - KHÔNG BỊ ĐƠ) =================
         let captureStream = null;
         let currentCaptureStep = 1;
         let frontImageBase64 = null;
         let backImageBase64 = null;
 
         async function openCaptureModal() {
+            stopAllRunningCameras(); // Giải phóng camera trước
             const container = document.getElementById('camera-capture-container');
             const video = document.getElementById('capture-video');
             currentCaptureStep = 1;
             updateCaptureStepUI();
 
             try {
-                // Ưu tiên độ phân giải cao khi quay dọc
+                // Yêu cầu camera chuẩn tương thích với mọi loại máy điện thoại
                 captureStream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: { ideal: "environment" }, 
-                        width: { ideal: 1920 }, 
-                        height: { ideal: 1080 } 
-                    },
+                    video: { facingMode: { ideal: "environment" } },
                     audio: false
                 });
                 video.srcObject = captureStream;
+                await video.play();
                 container.style.display = 'flex';
                 container.scrollIntoView({ behavior: 'smooth' });
             } catch (err) {
-                alert("Không thể khởi động Camera chụp ảnh. Vui lòng cấp quyền camera cho trình duyệt!");
+                alert("Không thể mở Camera chụp ảnh. Vui lòng cấp quyền camera cho trình duyệt!");
             }
         }
 
@@ -963,14 +1014,17 @@
         function updateCaptureStepUI() {
             const title = document.getElementById('capture-step-title');
             const btnSnap = document.getElementById('btn-snap-photo');
+            const guideText = document.getElementById('guide-box-text');
             if (currentCaptureStep === 1) {
-                title.innerText = "📸 BƯỚC 1/2: CHỤP MẶT TRƯỚC CCCD";
+                title.innerText = "📸 BƯỚC 1/2: ĐANG CHỤP MẶT TRƯỚC CCCD";
                 title.style.color = "#38bdf8";
                 btnSnap.innerText = "📸 Bấm Chụp Mặt Trước";
+                guideText.innerText = "Đặt MẶT TRƯỚC vào khung này";
             } else {
-                title.innerText = "📸 BƯỚC 2/2: CHỤP MẶT SAU CCCD";
+                title.innerText = "📸 BƯỚC 2/2: ĐANG CHỤP MẶT SAU CCCD";
                 title.style.color = "#f59e0b";
                 btnSnap.innerText = "📸 Bấm Chụp Mặt Sau";
+                guideText.innerText = "Lật MẶT SAU vào khung này";
             }
         }
 
@@ -979,32 +1033,24 @@
             const canvas = document.getElementById('hidden-capture-canvas');
             if (!video.videoWidth || !video.videoHeight) return;
 
-            // Tỷ lệ chuẩn ID-1 của thẻ CCCD nằm ngang: 85.6mm / 53.98mm = 1.5858
             const cardAspectRatio = 85.6 / 53.98;
-
             const vw = video.videoWidth;
             const vh = video.videoHeight;
 
-            // Tính toán vùng chữ nhật nằm ngang ở chính giữa khung camera quay dọc
-            // Khung ngắm chiếm 90% chiều rộng khung hình camera
             let cropW = vw * 0.90;
             let cropH = cropW / cardAspectRatio;
 
-            // Nếu chiều cao vượt quá vùng cho phép thì co lại theo chiều cao
             if (cropH > vh * 0.85) {
                 cropH = vh * 0.85;
                 cropW = cropH * cardAspectRatio;
             }
 
-            // Tọa độ bắt đầu cắt (căn chính giữa video)
             let startX = (vw - cropW) / 2;
             let startY = (vh - cropH) / 2;
 
             canvas.width = cropW;
             canvas.height = cropH;
             const ctx = canvas.getContext('2d');
-            
-            // Cắt đúng vùng thẻ nằm ngang trong luồng video dọc
             ctx.drawImage(video, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
 
             const imgBase64 = canvas.toDataURL('image/jpeg', 0.95);
@@ -1015,9 +1061,10 @@
                 document.getElementById('img-front-view').style.display = 'block';
                 document.getElementById('txt-front-empty').style.display = 'none';
 
+                // Chuyển ngay sang bước 2, tuyệt đối không dùng alert để video chạy liên tục
                 currentCaptureStep = 2;
                 updateCaptureStepUI();
-                alert("✅ Đã chụp Mặt Trước thành công!\nTiếp tục đưa MẶT SAU vào khung và bấm chụp.");
+                showToast("✅ Đã chụp Mặt Trước! Hãy đưa MẶT SAU vào khung bấm chụp.");
             } else {
                 backImageBase64 = imgBase64;
                 document.getElementById('img-back-view').src = backImageBase64;
@@ -1025,13 +1072,12 @@
                 document.getElementById('txt-back-empty').style.display = 'none';
 
                 closeCaptureModal();
-                alert("🎉 Đã chụp xong 2 mặt CCCD!\nĐang tự động chuyển sang Trang số 9 để xem trước và in.");
-
+                showToast("🎉 Hoàn tất chụp 2 mặt CCCD! Đang chuyển sang Trang 9.");
                 switchPage(9, document.getElementById('btn-tab-9'));
             }
         }
 
-        // ================= XỬ LÝ QUÉT QR CCCD =================
+        // ================= XỬ LÝ QUÉT QR CCCD (ĐÃ TỐI ƯU TƯƠNG THÍCH MÁY YẾU / MỜ) =================
         function formatCCCDDate(dateRaw) {
             if (!dateRaw || dateRaw.length !== 8) return dateRaw;
             let d = parseInt(dateRaw.substring(0, 2), 10);
@@ -1043,6 +1089,7 @@
         let cccdQrCodeScanner = null;
 
         function startCCCDScanner() {
+            stopAllRunningCameras(); // Giải phóng camera trước
             const container = document.getElementById('qr-cccd-reader-container');
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
@@ -1051,22 +1098,15 @@
                 cccdQrCodeScanner = new Html5Qrcode("qr-cccd-reader");
             }
 
+            // Cấu hình tương thích cao, tránh crash trên Safari/Android
             const config = {
-                fps: 20,
-                qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                    const qrboxSize = Math.floor(minEdge * 0.7);
-                    return { width: qrboxSize, height: qrboxSize };
-                },
-                aspectRatio: 1.0,
-                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                fps: 15,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
             };
 
             cccdQrCodeScanner.start(
-                { 
-                    facingMode: "environment",
-                    advanced: [{ focusMode: "continuous" }] 
-                },
+                { facingMode: "environment" },
                 config,
                 (decodedText) => {
                     parseCCCDQR(decodedText.trim());
@@ -1074,17 +1114,21 @@
                 },
                 (errorMessage) => {}
             ).catch((err) => {
-                alert("Không thể khởi động camera. Vui lòng cấp quyền Camera cho trình duyệt hoặc thử dùng chức năng tải ảnh chụp rõ nét bên dưới!");
+                alert("Camera không thể khởi động. Bạn có thể bấm dòng chữ bên dưới để chọn ảnh chụp mã QR từ máy!");
             });
         }
 
         function stopCCCDScanner() {
-            if (cccdQrCodeScanner && cccdQrCodeScanner.isScanning) {
-                cccdQrCodeScanner.stop().then(() => {
+            if (cccdQrCodeScanner) {
+                try {
+                    cccdQrCodeScanner.stop().then(() => {
+                        document.getElementById('qr-cccd-reader-container').style.display = 'none';
+                    }).catch(() => {
+                        document.getElementById('qr-cccd-reader-container').style.display = 'none';
+                    });
+                } catch(e) {
                     document.getElementById('qr-cccd-reader-container').style.display = 'none';
-                }).catch(err => {
-                    document.getElementById('qr-cccd-reader-container').style.display = 'none';
-                });
+                }
             } else {
                 document.getElementById('qr-cccd-reader-container').style.display = 'none';
             }
@@ -1102,7 +1146,7 @@
                         stopCCCDScanner();
                     })
                     .catch(err => {
-                        alert("Không tìm thấy mã QR trên ảnh. Vui lòng chụp gần, rõ nét góc có mã QR trên thẻ CCCD!");
+                        alert("Không tìm thấy mã QR trên ảnh. Vui lòng chụp gần, đủ sáng góc có mã QR trên thẻ CCCD!");
                     });
             }
         }
@@ -1124,9 +1168,9 @@
                 if (document.getElementById('in_noicap')) document.getElementById('in_noicap').value = "CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI";
 
                 syncData();
-                alert("✅ Đã quét và cập nhật thông tin CCCD thành công!");
+                showToast("✅ Đã cập nhật xong thông tin CCCD!");
             } else {
-                alert("⚠️ Định dạng QR không phải chuẩn CCCD gắn chip Việt Nam:\n" + qrData);
+                alert("⚠️ Định dạng QR không phải chuẩn CCCD Việt Nam:\n" + qrData);
             }
         }
 
@@ -1151,7 +1195,10 @@
             document.getElementById('out_ghichu').innerText = document.getElementById('in_ghichu').value;
         }
 
-        window.addEventListener('DOMContentLoaded', syncData);
+        window.addEventListener('DOMContentLoaded', () => {
+            syncData();
+            setTimeout(autoScaleA4Preview, 100);
+        });
     </script>
 </body>
 </html>
