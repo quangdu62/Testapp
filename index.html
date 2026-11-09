@@ -110,7 +110,7 @@
             background: #fff;
         }
 
-        /* NÚT QUÉT MÃ CHO SỐ KHUNG, SỐ MÁY, SERI (QUÉT 2D & QUÉT 1D) */
+        /* NÚT QUÉT MÃ CHO SỐ KHUNG, SỐ MÁY, SERI (QUÉT RỘNG & QUÉT 1D) */
         .input-with-btns {
             display: flex;
             gap: 4px;
@@ -723,13 +723,14 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT 2D (DÙNG THUẬT TOÁN QR/CCCD) -->
+            <!-- KHUNG QUÉT 2D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (DÙNG THUẬT TOÁN QR CCCD CHUẨN) -->
             <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #7c3aed;">
                 <div id="field-scan-status" style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
-                    Đưa mã QR vào khung vuông
+                    Đưa mã QR 2D vào khung vuông
                 </div>
                 <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
                     <video id="qr-field-video" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover; max-height: 210px;"></video>
+                    <!-- Khung tiêu điểm hình vuông -->
                     <div style="position: absolute; top: 50%; left: 50%; width: 175px; height: 175px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
                         <div style="position: absolute; width: 100%; height: 2px; background: #38bdf8; top: 0; box-shadow: 0 0 8px #38bdf8; animation: scanLaser 1.5s infinite alternate;"></div>
                     </div>
@@ -741,14 +742,14 @@
                 </div>
                 <div style="margin-top: 8px; text-align: center; background: #1e293b; padding: 6px; border-radius: 6px; border: 1px dashed #38bdf8;">
                     <label for="qr-field-file-input" style="color: #38bdf8; font-size: 12.5px; font-weight: bold; cursor: pointer; display: block;">
-                        📁 Bấm chọn ảnh mã QR từ máy
+                        📁 Bấm chọn ảnh mã QR 2D từ máy
                     </label>
                     <input type="file" id="qr-field-file-input" accept="image/*" style="display: none;" onchange="scanFieldQRFromFile(this)">
                 </div>
                 <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 8px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
-            <!-- KHUNG QUÉT 1D (HTML5Qrcode CHO MÃ VẠCH SỌC) -->
+            <!-- KHUNG QUÉT 1D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (DÙNG HTML5Qrcode) -->
             <div id="qr-field-scanner-container-1d" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                 <div id="qr-field-scan-title-1d" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét 1D...</div>
                 <div id="qr-field-reader-1d" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
@@ -1307,6 +1308,16 @@
             if (cccdZaloTrack && cccdZaloTrack.applyConstraints) {
                 cccdZaloTrack.applyConstraints({ advanced: [{ zoom: parseFloat(zoomVal) }] }).catch(() => {});
             }
+        }
+
+        function stopZaloStyleCCCDScanner() {
+            isScanningCCCD = false;
+            if (cccdZaloStream) {
+                cccdZaloStream.getTracks().forEach(track => track.stop());
+                cccdZaloStream = null;
+                cccdZaloTrack = null;
+            }
+            document.getElementById('qr-cccd-reader-container').style.display = 'none';
         }
 
         async function scanQRFromFile(input) {
