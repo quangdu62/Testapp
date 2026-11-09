@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Biểu Mẫu - Test Trang 1 & Trang 9</title>
-    <!-- 1. Lõi C++ ZBar WebAssembly (WASM) chuyên trị QR mật độ cao (CCCD & QR vuông) -->
+    <!-- 1. Lõi C++ ZBar WebAssembly (WASM) chuyên trị QR CCCD mật độ cao trên cả iPhone & Android -->
     <script src="https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.9.15/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9.21/dist/index.js"></script>
     <!-- 2. Thư viện ZXing & Html5Qrcode bổ trợ đa định dạng 1D/2D -->
@@ -516,7 +516,7 @@
                 print-color-adjust: exact !important;
             }
 
-            .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container, #custom-toast {
+            .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container, #qr-field-scanner-container-1d, #custom-toast {
                 display: none !important;
             }
 
@@ -653,7 +653,7 @@
                     </div>
                 </div>
                 
-                <!-- Thanh điều chỉnh Zoom & Đèn Flash -->
+                <!-- Thanh điều chỉnh Zoom -->
                 <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
                     <span>Thu nhỏ</span>
                     <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
@@ -723,14 +723,13 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT CAMERA CHO SỐ KHUNG, SỐ MÁY, SERI SẠC -->
+            <!-- KHUNG QUÉT 2D (DÙNG THUẬT TOÁN QR/CCCD) -->
             <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #7c3aed;">
                 <div id="field-scan-status" style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
-                    Đưa mã QR vuông vào khung hình vuông
+                    Đưa mã QR vào khung vuông
                 </div>
                 <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
                     <video id="qr-field-video" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover; max-height: 210px;"></video>
-                    <!-- Khung tiêu điểm hình vuông giống CCCD -->
                     <div style="position: absolute; top: 50%; left: 50%; width: 175px; height: 175px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
                         <div style="position: absolute; width: 100%; height: 2px; background: #38bdf8; top: 0; box-shadow: 0 0 8px #38bdf8; animation: scanLaser 1.5s infinite alternate;"></div>
                     </div>
@@ -742,14 +741,14 @@
                 </div>
                 <div style="margin-top: 8px; text-align: center; background: #1e293b; padding: 6px; border-radius: 6px; border: 1px dashed #38bdf8;">
                     <label for="qr-field-file-input" style="color: #38bdf8; font-size: 12.5px; font-weight: bold; cursor: pointer; display: block;">
-                        📁 Bấm chọn ảnh mã vạch/QR từ máy
+                        📁 Bấm chọn ảnh mã QR từ máy
                     </label>
                     <input type="file" id="qr-field-file-input" accept="image/*" style="display: none;" onchange="scanFieldQRFromFile(this)">
                 </div>
                 <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 8px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
-            <!-- CONTAINER CHO QUÉT 1D (DÙNG HTML5Qrcode) -->
+            <!-- KHUNG QUÉT 1D (HTML5Qrcode CHO MÃ VẠCH SỌC) -->
             <div id="qr-field-scanner-container-1d" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                 <div id="qr-field-scan-title-1d" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét 1D...</div>
                 <div id="qr-field-reader-1d" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
@@ -1117,11 +1116,11 @@
                 captureStream = null;
                 document.getElementById('camera-capture-container').style.display = 'none';
             }
-            await stopFieldScanner();
+            stopFieldScanner();
             await stopFieldScanner1D();
         }
 
-        // ================= LÕI QUÉT QR CCCD & QUÉT 2D CHO SỐ KHUNG/MÁY/SERI =================
+        // ================= LÕI QUÉT QR CCCD & QUÉT 2D =================
         let cccdZaloStream = null;
         let cccdZaloTrack = null;
         let isScanningCCCD = false;
@@ -1385,7 +1384,7 @@
             }
         }
 
-        // ================= HÀM QUÉT 2D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (DÙNG THUẬT TOÁN QR QUỲNH/CCCD) =================
+        // ================= HÀM QUÉT 2D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC =================
         async function startFieldScanner(fieldId, fieldLabel) {
             await stopAllRunningCameras();
             currentField2DId = fieldId;
@@ -1395,7 +1394,7 @@
             const statusText = document.getElementById('field-scan-status');
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
-            statusText.innerText = `Đang quét 2D cho ${fieldLabel} (Đưa mã QR vuông vào khung)`;
+            statusText.innerText = `Đang quét 2D cho ${fieldLabel} (Đưa mã QR vào khung)`;
 
             await getQRDetector();
 
@@ -1555,7 +1554,7 @@
             if (container) container.style.display = 'none';
         }
 
-        // ================= HÀM QUÉT 1D (DÙNG HTML5Qrcode CHO MÃ VẠCH SỌC) =================
+        // ================= HÀM QUÉT 1D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC =================
         let fieldScanner1D = null;
         let isFieldScanner1DRunning = false;
         let currentTarget1DId = null;
