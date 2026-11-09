@@ -1005,7 +1005,7 @@
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Số HĐ / Số Phiếu</label>
-                        <input type="text" id="in_sohd" value="1042" oninput="syncData()">
+                        <input type="text" id="in_sohd" value="" oninput="syncData()">
                     </div>
                     <div class="form-group">
                         <label>Ngày lập (DD/MM/YYYY)</label>
@@ -1017,10 +1017,10 @@
 
                 <!-- NÚT 1: QUÉT QR CCCD -->
                 <button type="button" class="btn-scan-cccd" onclick="startZaloStyleCCCDScanner()">
-                    ⚡ Quét Siêu Nhạy QR CCCD (Kiểu Zalo)
+                    ⚡ Quét QR CCCD
                 </button>
 
-                <!-- NÚT 2: CHỤP ẢNH 2 MẶT CCCD IN TRANG 9 -->
+                <!-- NÚT 2: CHỤP ẢNH 2 MẶT CCCD  -->
                 <button type="button" class="btn-capture-cccd" onclick="openCaptureModal()">
                     📸 Chụp Ảnh 2 Mặt CCCD (In Trang 9)
                 </button>
@@ -1075,35 +1075,35 @@
                 <!-- CÁC TRƯỜNG THÔNG TIN TỰ ĐIỀN TỪ QR CCCD -->
                 <div class="form-group">
                     <label>Họ và tên khách hàng (Tự động in hoa)</label>
-                    <input type="text" id="in_hoten" value="NGUYỄN THỊ CÚC" oninput="this.value = this.value.toUpperCase(); syncData()">
+                    <input type="text" id="in_hoten" value="" oninput="this.value = this.value.toUpperCase(); syncData()">
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Số CCCD</label>
-                        <input type="text" id="in_cccd" value="034180005242" oninput="syncData()">
+                        <input type="text" id="in_cccd" value="" oninput="syncData()">
                     </div>
                     <div class="form-group">
                         <label>Ngày sinh KH</label>
-                        <input type="text" id="in_ngaysinh" value="6/5/1980" oninput="syncData()">
+                        <input type="text" id="in_ngaysinh" value="" oninput="syncData()">
                     </div>
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Ngày cấp CCCD</label>
-                        <input type="text" id="in_ngaycap" value="27/6/2021" oninput="syncData()">
+                        <input type="text" id="in_ngaycap" value="" oninput="syncData()">
                     </div>
                     <div class="form-group">
                         <label>Nơi cấp CCCD</label>
-                        <input type="text" id="in_noicap" value="BỘ CÔNG AN" oninput="this.value = this.value.toUpperCase(); syncData()">
+                        <input type="text" id="in_noicap" value="" oninput="this.value = this.value.toUpperCase(); syncData()">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Địa chỉ khách hàng</label>
-                    <input type="text" id="in_diachi" value="XÃ TIỀN HẢI ,TỈNH HƯNG YÊN" oninput="this.value = this.value.toUpperCase(); syncData()">
+                    <input type="text" id="in_diachi" value="" oninput="this.value = this.value.toUpperCase(); syncData()">
                 </div>
                 <div class="form-group">
                     <label>Số điện thoại (Nhập tay)</label>
-                    <input type="text" id="in_sdt" value="0387144897" oninput="syncData()">
+                    <input type="text" id="in_sdt" value="" oninput="syncData()">
                 </div>
 
                 <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
@@ -1164,18 +1164,18 @@
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Loại xe</label>
-                        <input type="text" id="in_loaixe" value="EVO GRAND LITE" oninput="this.value = this.value.toUpperCase(); syncData()">
+                        <input type="text" id="in_loaixe" value="" oninput="this.value = this.value.toUpperCase(); syncData()">
                     </div>
                     <div class="form-group">
                         <label>Nhãn hiệu / Hãng</label>
-                        <input type="text" id="in_nhanhieu" value="Vinfast" oninput="syncData()">
+                        <input type="text" id="in_nhanhieu" value="VINFAST" oninput="syncData()">
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Màu sắc</label>
-                        <input type="text" id="in_mausac" value="TRẮNG" oninput="this.value = this.value.toUpperCase(); syncData()">
+                        <input type="text" id="in_mausac" value="" oninput="this.value = this.value.toUpperCase(); syncData()">
                     </div>
                     <div class="form-group">
                         <label>PIN (kèm xe)</label>
@@ -1187,7 +1187,7 @@
                 <div class="form-group">
                     <label>Số khung (SK)</label>
                     <div class="input-with-btns">
-                        <input type="text" id="in_sk" value="702436" oninput="syncData()">
+                        <input type="text" id="in_sk" value="" oninput="syncData()">
                         <button type="button" class="btn-scan-field-wide" onclick="startFieldScanner('in_sk', 'Số khung (SK)')">📷 Quét 2D</button>
                         <button type="button" class="btn-scan-field-narrow" onclick="startFieldScanner1D('in_sk', 'Số khung (SK)')">🔎 Quét 1D</button>
                     </div>
@@ -1197,7 +1197,7 @@
                 <div class="form-group">
                     <label>Số máy (SM)</label>
                     <div class="input-with-btns">
-                        <input type="text" id="in_sm" value="250212" oninput="syncData()">
+                        <input type="text" id="in_sm" value="" oninput="syncData()">
                         <button type="button" class="btn-scan-field-wide" onclick="startFieldScanner('in_sm', 'Số máy (SM)')">📷 Quét 2D</button>
                         <button type="button" class="btn-scan-field-narrow" onclick="startFieldScanner1D('in_sm', 'Số máy (SM)')">🔎 Quét 1D</button>
                     </div>
@@ -1207,7 +1207,7 @@
                 <div class="form-group">
                     <label>Số seri sạc</label>
                     <div class="input-with-btns">
-                        <input type="text" id="in_serisac" value="DRT00011629GB0003001260811D06705" oninput="syncData()">
+                        <input type="text" id="in_serisac" value="" oninput="syncData()">
                         <button type="button" class="btn-scan-field-wide" onclick="startFieldScanner('in_serisac', 'Số seri sạc')">📷 Quét 2D</button>
                         <button type="button" class="btn-scan-field-narrow" onclick="startFieldScanner1D('in_serisac', 'Số seri sạc')">🔎 Quét 1D</button>
                     </div>
@@ -1216,11 +1216,11 @@
                 <div class="section-tag">4. Thanh toán & Ghi chú</div>
                 <div class="form-group">
                     <label>Tổng tiền phải thanh toán</label>
-                    <input type="text" id="in_tongtien" value="15.600.000 VNĐ" oninput="syncData()">
+                    <input type="text" id="in_tongtien" value="XX.XXX.XXX VNĐ" oninput="syncData()">
                 </div>
                 <div class="form-group">
                     <label>Số tiền đã thanh toán / Số tiền thu</label>
-                    <input type="text" id="in_dathanhtoan" value="15.600.000 VNĐ (NGUYÊN XE+DKY+THẢM)" oninput="syncData()">
+                    <input type="text" id="in_dathanhtoan" value="XX.XXX.XXX VNĐ (NGUYÊN XE+DKY+THẢM)" oninput="syncData()">
                 </div>
                 <div class="form-group">
                     <label>Số tiền KH còn nợ lại</label>
