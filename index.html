@@ -181,6 +181,19 @@
         }
         .btn-capture-cccd:hover { background: #0369a1; }
 
+        /* GIỮ NGUYÊN KÍCH THƯỚC KHUNG CAMERA QUÉT NHƯ CODE 1 */
+        #qr-cccd-video {
+            max-height: 210px !important;
+            object-fit: cover !important;
+        }
+        #qr-field-reader {
+            min-height: 240px !important;
+        }
+        #qr-field-reader video {
+            max-height: 260px !important;
+            object-fit: cover !important;
+        }
+
         /* KHU VỰC CHỌN TRANG & IN (GIAO DIỆN MÁY TÍNH) */
         .bottom-action-box {
             display: flex;
@@ -714,7 +727,7 @@
             <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D VÀ 2D -->
             <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                 <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét mã 1D / 2D...</div>
-                <div id="qr-field-reader" style="width: 100%; background: #000; border-radius: 6px; overflow: hidden;"></div>
+                <div id="qr-field-reader" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
                 <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 6px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
@@ -729,7 +742,7 @@
                 </div>
             </div>
 
-            <!-- SỐ KHUNG (TÍCH HỢP NÚT QUÉT RỘNG & QUÉT HẸP) -->
+            <!-- SỐ KHUNG -->
             <div class="form-group">
                 <label>Số khung (SK)</label>
                 <div class="input-with-btns">
@@ -739,7 +752,7 @@
                 </div>
             </div>
 
-            <!-- SỐ MÁY (TÍCH HỢP NÚT QUÉT RỘNG & QUÉT HẸP) -->
+            <!-- SỐ MÁY -->
             <div class="form-group">
                 <label>Số máy (SM)</label>
                 <div class="input-with-btns">
@@ -749,7 +762,7 @@
                 </div>
             </div>
 
-            <!-- SỐ SERI SẠC (TÍCH HỢP NÚT QUÉT RỘNG & QUÉT HẸP) -->
+            <!-- SỐ SERI SẠC -->
             <div class="form-group">
                 <label>Số seri sạc</label>
                 <div class="input-with-btns">
@@ -1351,7 +1364,7 @@
             }
         }
 
-        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (TÍCH HỢP CẢ 2 CHẾ ĐỘ RỘNG & HẸP) =================
+        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
