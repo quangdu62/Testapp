@@ -167,19 +167,6 @@
         }
         .btn-capture-cccd:hover { background: #0369a1; }
 
-        /* CHỈ THU NGẮN KHUNG CAMERA QUÉT QR & 1D/2D, GIỮ NGUYÊN KHUNG CHỤP CCCD RỘNG RÃI */
-        #qr-cccd-video {
-            max-height: 210px !important;
-            object-fit: cover !important;
-        }
-        #qr-field-reader {
-            min-height: 240px !important;
-        }
-        #qr-field-reader video {
-            max-height: 260px !important;
-            object-fit: cover !important;
-        }
-
         /* KHU VỰC CHỌN TRANG & IN (GIAO DIỆN MÁY TÍNH) */
         .bottom-action-box {
             display: flex;
@@ -626,34 +613,34 @@
             </button>
 
             <!-- KHUNG CAMERA QUÉT QR CCCD -->
-            <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 6px; position: relative; background: #0f172a; padding: 8px; border-radius: 8px; border: 2px solid #7c3aed;">
-                <div id="cccd-scan-status" style="color: #c4b5fd; font-weight: bold; font-size: 12.5px; text-align: center; margin-bottom: 6px;">
+            <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #7c3aed;">
+                <div id="cccd-scan-status" style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
                     Cầm thẻ cách camera 10-15cm, nghiêng nhẹ tránh bóng đèn
                 </div>
                 
-                <div style="position: relative; width: 100%; max-height: 210px; border-radius: 6px; overflow: hidden; background: #000;">
-                    <video id="qr-cccd-video" autoplay playsinline muted style="width: 100%; max-height: 210px; display: block; object-fit: cover;"></video>
+                <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
+                    <video id="qr-cccd-video" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover;"></video>
                     <!-- Khung tiêu điểm nhắm quét -->
-                    <div style="position: absolute; top: 50%; left: 50%; width: 175px; height: 175px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
+                    <div style="position: absolute; top: 50%; left: 50%; width: 220px; height: 220px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
                         <div style="position: absolute; width: 100%; height: 2px; background: #38bdf8; top: 0; box-shadow: 0 0 8px #38bdf8; animation: scanLaser 1.5s infinite alternate;"></div>
                     </div>
                 </div>
                 
-                <!-- Thanh điều chỉnh Zoom -->
-                <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 6px; color: #fff; font-size: 12px;">
+                <!-- Thanh điều chỉnh Zoom & Đèn Flash -->
+                <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
                     <span>Thu nhỏ</span>
                     <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
                     <span>Phóng to</span>
                 </div>
 
-                <div style="margin-top: 6px; text-align: center; background: #1e293b; padding: 6px; border-radius: 6px; border: 1px dashed #38bdf8;">
-                    <label for="qr-file-input" style="color: #38bdf8; font-size: 12.5px; font-weight: bold; cursor: pointer; display: block;">
+                <div style="margin-top: 10px; text-align: center; background: #1e293b; padding: 8px; border-radius: 6px; border: 1px dashed #38bdf8;">
+                    <label for="qr-file-input" style="color: #38bdf8; font-size: 13px; font-weight: bold; cursor: pointer; display: block;">
                         📁 Bấm chọn ảnh chụp CCCD hoặc chụp trực tiếp bằng Camera gốc
                     </label>
                     <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="scanQRFromFile(this)">
                 </div>
 
-                <button type="button" onclick="stopZaloStyleCCCDScanner()" style="width: 100%; margin-top: 6px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
+                <button type="button" onclick="stopZaloStyleCCCDScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
             <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD -->
@@ -709,11 +696,11 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D VÀ 2D CHO CODE 1 -->
-            <div id="qr-field-scanner-container" style="display: none; margin-bottom: 6px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
+            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D VÀ 2D CHUẨN CODE 1 TO RÕ -->
+            <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                 <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét mã 1D / 2D...</div>
-                <div id="qr-field-reader" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
-                <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;">Đóng Camera Quét</button>
+                <div id="qr-field-reader" style="width: 100%; background: #000; border-radius: 6px; overflow: hidden;"></div>
+                <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 6px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
             <div class="grid-2">
@@ -1346,7 +1333,7 @@
             }
         }
 
-        // ================= 4. THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (LẤY TỪ CODE 1) =================
+        // ================= 4. THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (LẤY CHUẨN CODE 1) =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
