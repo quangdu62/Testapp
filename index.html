@@ -181,7 +181,7 @@
         }
         .btn-capture-cccd:hover { background: #0369a1; }
 
-        /* KÍCH THƯỚC KHUNG CAMERA QUÉT (CHUẨN CODE 1) */
+        /* KÍCH THƯỚC KHUNG CAMERA QUÉT CHUẨN CODE 1 */
         #qr-cccd-video {
             max-height: 210px !important;
             object-fit: cover !important;
@@ -654,7 +654,7 @@
                     </div>
                 </div>
                 
-                <!-- Thanh điều chỉnh Zoom -->
+                <!-- Thanh điều chỉnh Zoom & Đèn Flash -->
                 <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
                     <span>Thu nhỏ</span>
                     <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
@@ -1364,7 +1364,7 @@
             }
         }
 
-        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (LẤY CHUẨN CODE 1 CHO QUÉT RỘNG) =================
+        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (TÍCH HỢP CHUẨN CODE 1 CHO QUÉT RỘNG) =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
@@ -1388,13 +1388,13 @@
                 });
             }
 
-            // Nếu mode là 'wide' dùng thuật toán Code 1 chuẩn to rộng, 'narrow' dùng chế độ hẹp Code 2
+            // Thuật toán Quét Rộng lấy chính xác từ Code 1, Quét Hẹp giữ nguyên Code 2
             const config = {
-                fps: (mode === 'wide') ? 20 : 25,
+                fps: (mode === 'wide') ? 25 : 25,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
                     if (mode === 'wide') {
-                        const boxWidth = Math.max(220, Math.floor(viewfinderWidth * 0.85));
-                        const boxHeight = Math.max(100, Math.floor(viewfinderHeight * 0.45));
+                        const boxWidth = Math.max(220, Math.floor(viewfinderWidth * 0.92));
+                        const boxHeight = Math.max(100, Math.floor(viewfinderHeight * 0.65));
                         return { width: boxWidth, height: boxHeight };
                     } else {
                         const boxWidth = Math.floor(viewfinderWidth * 0.92);
@@ -1406,7 +1406,7 @@
                     facingMode: { ideal: "environment" },
                     width: { ideal: 1920, min: 1280 },
                     height: { ideal: 1080, min: 720 },
-                    ...(mode === 'narrow' ? { focusMode: "continuous" } : {})
+                    focusMode: "continuous"
                 },
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.QR_CODE,
