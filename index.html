@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Biểu Mẫu - Test Trang 1 & Trang 9</title>
-    <!-- Nhúng cả ZXing và Html5Qrcode chuẩn quốc tế giải mã QR CCCD UTF-8 & Barcode 1D/2D cực nhạy -->
+    <!-- 1. Lõi C++ ZBar WebAssembly (WASM) chuyên trị QR CCCD mật độ cao trên cả iPhone & Android -->
+    <script src="https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.9.15/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9.21/dist/index.js"></script>
+    <!-- 2. Thư viện ZXing & Html5Qrcode bổ trợ đa định dạng 1D/2D -->
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
@@ -598,8 +601,8 @@
 
             <!-- KHUNG CAMERA QUÉT QR CCCD (THUẬT TOÁN KIỂU ZALO) -->
             <div id="qr-cccd-reader-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #7c3aed;">
-                <div style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
-                    Cầm thẻ cách camera khoảng 15cm (Đã tự động Zoom nét)
+                <div id="cccd-scan-status" style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
+                    Cầm thẻ cách camera 10-15cm, nghiêng nhẹ tránh bóng đèn
                 </div>
                 
                 <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
@@ -610,16 +613,16 @@
                     </div>
                 </div>
                 
-                <!-- Thanh điều chỉnh Zoom thủ công nếu máy không tự hỗ trợ Auto Zoom -->
+                <!-- Thanh điều chỉnh Zoom & Đèn Flash -->
                 <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
                     <span>Thu nhỏ</span>
                     <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
                     <span>Phóng to</span>
                 </div>
 
-                <div style="margin-top: 8px; text-align: center;">
-                    <label for="qr-file-input" style="color: #38bdf8; font-size: 12px; text-decoration: underline; cursor: pointer;">
-                        📁 Hoặc bấm vào đây để chọn ảnh chụp góc QR từ máy
+                <div style="margin-top: 10px; text-align: center; background: #1e293b; padding: 8px; border-radius: 6px; border: 1px dashed #38bdf8;">
+                    <label for="qr-file-input" style="color: #38bdf8; font-size: 13px; font-weight: bold; cursor: pointer; display: block;">
+                        📁 Bấm chọn ảnh chụp CCCD hoặc chụp trực tiếp bằng Camera gốc
                     </label>
                     <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="scanQRFromFile(this)">
                 </div>
@@ -937,12 +940,13 @@
             await stopFieldScanner();
         }
 
-        // ================= THUẬT TOÁN QUÉT QR CCCD KIỂU ZALO (HARDWARE AI + ZXING HYBRID) =================
+        // ================= LÕI QUÉT QR CCCD C++ WASM (ZBAR) + NATIVE AI + ZXING =================
         let cccdZaloStream = null;
         let cccdZaloTrack = null;
         let isScanningCCCD = false;
+        let qrDetectorEngine = null;
 
-        // 1. Khởi tạo ZXing MultiFormatReader đúng chuẩn API với UTF-8 & TRY_HARDER
+        // Khởi tạo ZXing dự phòng
         const zxingHints = new Map();
         zxingHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
         zxingHints.set(ZXing.DecodeHintType.CHARACTER_SET, 'UTF-8');
@@ -950,18 +954,64 @@
         const zxingMultiReader = new ZXing.MultiFormatReader();
         zxingMultiReader.setHints(zxingHints);
 
-        // 2. Ưu tiên chip AI phần cứng của trình duyệt (BarcodeDetector) nếu thiết bị hỗ trợ
-        let nativeQRDetector = null;
-        if ('BarcodeDetector' in window) {
+        // Khởi tạo BarcodeDetector (Tự động dùng AI phần cứng hoặc C++ ZBar WASM Polyfill)
+        async function getQRDetector() {
+            if (qrDetectorEngine) return qrDetectorEngine;
             try {
-                nativeQRDetector = new BarcodeDetector({ formats: ['qr_code'] });
-            } catch (e) {}
+                if (!('BarcodeDetector' in window) && window. barcodeDetectorPolyfill) {
+                    window.BarcodeDetector = window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill;
+                }
+                if ('BarcodeDetector' in window) {
+                    qrDetectorEngine = new BarcodeDetector({ formats: ['qr_code'] });
+                } else if (window.barcodeDetectorPolyfill) {
+                    qrDetectorEngine = new window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill({ formats: ['qr_code'] });
+                }
+            } catch (e) {
+                if (window.barcodeDetectorPolyfill) {
+                    qrDetectorEngine = new window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill({ formats: ['qr_code'] });
+                }
+            }
+            return qrDetectorEngine;
         }
 
         function decodeCanvasWithZXing(canvas) {
-            const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
-            const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
-            return zxingMultiReader.decodeWithState(binaryBitmap);
+            try {
+                const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+                // Thử HybridBinarizer trước
+                const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+                const res = zxingMultiReader.decodeWithState(binaryBitmap);
+                zxingMultiReader.reset();
+                if (res && res.getText()) return res.getText();
+            } catch (e) {
+                zxingMultiReader.reset();
+            }
+            try {
+                const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+                // Thử thêm GlobalHistogramBinarizer cho thẻ bị bóng đèn
+                const binaryBitmap2 = new ZXing.BinaryBitmap(new ZXing.GlobalHistogramBinarizer(luminanceSource));
+                const res2 = zxingMultiReader.decodeWithState(binaryBitmap2);
+                zxingMultiReader.reset();
+                if (res2 && res2.getText()) return res2.getText();
+            } catch (e2) {
+                zxingMultiReader.reset();
+            }
+            return null;
+        }
+
+        // Giải mã 1 vùng Canvas bằng cả C++ WASM/Native và ZXing
+        async function tryDecodeCanvas(canvas) {
+            const detector = await getQRDetector();
+            if (detector) {
+                try {
+                    const barcodes = await detector.detect(canvas);
+                    if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                        return barcodes[0].rawValue.trim();
+                    }
+                } catch (e) {}
+            }
+            const zxingText = decodeCanvasWithZXing(canvas);
+            if (zxingText) return zxingText.trim();
+            return null;
         }
 
         async function startZaloStyleCCCDScanner() {
@@ -969,17 +1019,21 @@
             const container = document.getElementById('qr-cccd-reader-container');
             const video = document.getElementById('qr-cccd-video');
             const zoomBox = document.getElementById('zoom-control-box');
+            const statusText = document.getElementById('cccd-scan-status');
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
+            statusText.innerText = "Đang khởi động ống kính C++ WASM...";
+
+            await getQRDetector();
 
             try {
-                // Mở Camera Full HD 1080p trước để không bị trình duyệt từ chối hạ xuống 480p
+                // Yêu cầu độ phân giải cao nhất (Ưu tiên 4K/FullHD để hạt QR CCCD sắc nét)
                 try {
                     cccdZaloStream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: { ideal: "environment" },
-                            width: { ideal: 1920, min: 1280 },
-                            height: { ideal: 1080, min: 720 }
+                            width: { ideal: 2560, min: 1280 },
+                            height: { ideal: 1440, min: 720 }
                         },
                         audio: false
                     });
@@ -992,6 +1046,7 @@
 
                 video.srcObject = cccdZaloStream;
                 await video.play();
+                statusText.innerText = "Đưa góc mã QR CCCD vào ô vuông (Cách 10-15cm)";
 
                 cccdZaloTrack = cccdZaloStream.getVideoTracks()[0];
                 const capabilities = (cccdZaloTrack && cccdZaloTrack.getCapabilities) ? cccdZaloTrack.getCapabilities() : {};
@@ -1001,7 +1056,7 @@
                     advancedConstraints.push({ focusMode: 'continuous' });
                 }
 
-                // Tự động kích hoạt Hardware Zoom 2.0x như Zalo nếu ống kính hỗ trợ
+                // Tự động Zoom 2.0x để điện thoại lấy nét xa mà hạt QR vẫn to
                 if (capabilities.zoom) {
                     zoomBox.style.display = 'flex';
                     const slider = document.getElementById('zoom-slider');
@@ -1023,7 +1078,7 @@
                 scanCCCDFrameLoop();
 
             } catch (err) {
-                alert("Không thể khởi động Camera. Vui lòng cấp quyền Camera hoặc tải ảnh chụp góc QR từ thư viện máy!");
+                alert("Không thể mở Camera trực tiếp (Trình duyệt chặn hoặc chưa có HTTPS). Hãy bấm vào dòng chữ màu xanh bên dưới để chụp ảnh CCCD bằng Camera gốc của máy!");
             }
         }
 
@@ -1038,40 +1093,37 @@
                 const vw = video.videoWidth;
                 const vh = video.videoHeight;
 
-                // Cắt khung vuông vùng trung tâm (65% khung hình) nơi đặt mã QR CCCD
-                const scanSize = Math.floor(Math.min(vw, vh) * 0.65);
-                const sx = Math.floor((vw - scanSize) / 2);
-                const sy = Math.floor((vh - scanSize) / 2);
+                // 1. Quét vùng trung tâm (60% khung hình) và phóng đại nhẹ lên 800x800 để tách hạt QR
+                const cropSize = Math.floor(Math.min(vw, vh) * 0.60);
+                const sx = Math.floor((vw - cropSize) / 2);
+                const sy = Math.floor((vh - cropSize) / 2);
 
-                canvas.width = scanSize;
-                canvas.height = scanSize;
-                ctx.drawImage(video, sx, sy, scanSize, scanSize, 0, 0, scanSize, scanSize);
+                canvas.width = 800;
+                canvas.height = 800;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, 800, 800);
 
-                // TẦNG 1: Giải mã bằng chip AI phần cứng BarcodeDetector
-                if (nativeQRDetector) {
-                    try {
-                        const barcodes = await nativeQRDetector.detect(canvas);
-                        if (barcodes.length > 0 && barcodes[0].rawValue) {
-                            parseCCCDQR(barcodes[0].rawValue.trim());
-                            stopZaloStyleCCCDScanner();
-                            return;
-                        }
-                    } catch (e) {}
+                let decoded = await tryDecodeCanvas(canvas);
+                if (decoded) {
+                    parseCCCDQR(decoded);
+                    stopZaloStyleCCCDScanner();
+                    return;
                 }
 
-                // TẦNG 2: Giải mã bằng ZXing HybridBinarizer (Adaptive Local Thresholding chuẩn)
-                try {
-                    const result = decodeCanvasWithZXing(canvas);
-                    if (result && result.getText()) {
-                        parseCCCDQR(result.getText().trim());
-                        stopZaloStyleCCCDScanner();
-                        return;
-                    }
-                } catch (e) {}
+                // 2. Nếu người dùng để thẻ lệch khung, thử quét toàn khung hình
+                canvas.width = vw;
+                canvas.height = vh;
+                ctx.drawImage(video, 0, 0, vw, vh);
+                decoded = await tryDecodeCanvas(canvas);
+                if (decoded) {
+                    parseCCCDQR(decoded);
+                    stopZaloStyleCCCDScanner();
+                    return;
+                }
             }
 
             if (isScanningCCCD) {
-                setTimeout(scanCCCDFrameLoop, 80);
+                setTimeout(scanCCCDFrameLoop, 70);
             }
         }
 
@@ -1091,45 +1143,51 @@
             document.getElementById('qr-cccd-reader-container').style.display = 'none';
         }
 
+        // THUẬT TOÁN QUÉT ẢNH TỪ FILE: Tự động cắt 4 góc + Trung tâm để tìm hạt QR nhỏ trong ảnh 12MP
         async function scanQRFromFile(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            showToast("⏳ Đang phân tích mã QR CCCD từ ảnh...", 2000);
 
-                // Ưu tiên quét file ảnh bằng BarcodeDetector
-                if (nativeQRDetector) {
-                    try {
-                        const bitmap = await createImageBitmap(file);
-                        const barcodes = await nativeQRDetector.detect(bitmap);
-                        if (barcodes.length > 0 && barcodes[0].rawValue) {
-                            parseCCCDQR(barcodes[0].rawValue.trim());
-                            stopZaloStyleCCCDScanner();
-                            input.value = "";
-                            return;
-                        }
-                    } catch (e) {}
+            const img = new Image();
+            img.onload = async () => {
+                const canvas = document.getElementById('qr-preprocess-canvas');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                const iw = img.width;
+                const ih = img.height;
+
+                // Danh sách 7 vùng cắt thông minh: Toàn ảnh, Giữa ảnh, Góc phải trên (vị trí QR CCCD chuẩn), Góc trái trên, Phải dưới, Trái dưới
+                const regions = [
+                    { x: 0, y: 0, w: iw, h: ih },                                  // Toàn bộ ảnh
+                    { x: iw * 0.45, y: 0, w: iw * 0.55, h: ih * 0.55 },            // Góc trên bên phải (nơi đặt QR trên mặt trước CCCD)
+                    { x: iw * 0.15, y: ih * 0.15, w: iw * 0.70, h: ih * 0.70 },    // Vùng trung tâm 70%
+                    { x: 0, y: 0, w: iw * 0.55, h: ih * 0.55 },                    // Góc trên bên trái
+                    { x: iw * 0.45, y: ih * 0.45, w: iw * 0.55, h: ih * 0.55 },    // Góc dưới bên phải
+                    { x: 0, y: ih * 0.45, w: iw * 0.55, h: ih * 0.55 },            // Góc dưới bên trái
+                    { x: iw * 0.25, y: ih * 0.25, w: iw * 0.50, h: ih * 0.50 }     // Vùng trung tâm 50% (Zoom cận)
+                ];
+
+                for (let reg of regions) {
+                    // Chuẩn hóa kích thước vùng cắt về khoảng ~1200px để ZBar/ZXing đọc nét nhất
+                    const scale = Math.min(1.5, 1200 / Math.max(reg.w, reg.h));
+                    canvas.width = Math.floor(reg.w * scale);
+                    canvas.height = Math.floor(reg.h * scale);
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(img, reg.x, reg.y, reg.w, reg.h, 0, 0, canvas.width, canvas.height);
+
+                    const decodedText = await tryDecodeCanvas(canvas);
+                    if (decodedText) {
+                        parseCCCDQR(decodedText);
+                        stopZaloStyleCCCDScanner();
+                        input.value = "";
+                        return;
+                    }
                 }
 
-                // Fallback sang ZXing HybridBinarizer
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.getElementById('qr-preprocess-canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    try {
-                        const result = decodeCanvasWithZXing(canvas);
-                        if (result && result.getText()) {
-                            parseCCCDQR(result.getText().trim());
-                            stopZaloStyleCCCDScanner();
-                        }
-                    } catch(e) {
-                        alert("Không thể giải mã QR từ ảnh. Hãy chụp thật gần, đủ sáng góc chứa mã QR trên thẻ CCCD!");
-                    }
-                    input.value = "";
-                };
-                img.src = URL.createObjectURL(file);
-            }
+                alert("Không tìm thấy mã QR trong ảnh. Mẹo: Hãy chụp rõ góc trên bên phải của thẻ CCCD và tránh bị bóng đèn lóa trắng vào mã QR!");
+                input.value = "";
+            };
+            img.src = URL.createObjectURL(file);
         }
 
         function formatCCCDDate(dateRaw) {
@@ -1159,7 +1217,7 @@
                 syncData();
                 showToast("✅ Đã cập nhật xong thông tin CCCD!");
             } else {
-                alert("⚠️ Định dạng QR không phải chuẩn CCCD Việt Nam:\n" + qrData);
+                alert("⚠️ Đã quét được mã nhưng không phải chuẩn CCCD Việt Nam:\n" + qrData);
             }
         }
 
@@ -1311,7 +1369,6 @@
             const w = sourceCanvas.width;
             const h = sourceCanvas.height;
 
-            // Tự động xén bỏ 3% lề ngoài để loại sạch bóng bàn hoặc viền thừa
             const trimX = Math.floor(w * 0.03);
             const trimY = Math.floor(h * 0.03);
 
