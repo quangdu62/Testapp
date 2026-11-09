@@ -18,6 +18,8 @@
 
         html, body {
             width: 100%;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         /* GIAO DIỆN MÁY TÍNH MẶC ĐỊNH */
@@ -37,7 +39,7 @@
             overflow: hidden;
         }
 
-        /* GIAO DIỆN KHUNG ĐĂNG NHẬP / KÍCH HOẠT KEY (TỪ CODE 1) */
+        /* GIAO DIỆN KHUNG ĐĂNG NHẬP / KÍCH HOẠT KEY */
         #login-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -189,7 +191,7 @@
             background: #fff;
         }
 
-        /* NÚT QUÉT MÃ CHO SỐ KHUNG, SỐ MÁY, SERI (QUÉT RỘNG & QUÉT 1D) */
+        /* NÚT QUÉT MÃ CHO SỐ KHUNG, SỐ MÁY, SERI */
         .input-with-btns {
             display: flex;
             gap: 4px;
@@ -350,9 +352,12 @@
         /* KHUNG THU PHÓNG TỶ LỆ A4 */
         .a4-scale-wrapper {
             width: 210mm;
+            min-width: 210mm;
             min-height: 297mm;
             margin: 0 auto;
-            transform-origin: top center;
+            transform-origin: top left;
+            -webkit-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
         }
 
         /* GIẤY A4 GỐC CHUẨN MÁY TÍNH */
@@ -360,6 +365,7 @@
             display: none;
             background: white;
             width: 210mm;
+            min-width: 210mm;
             min-height: 297mm;
             padding: 12mm 10mm;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -367,6 +373,8 @@
             color: #000;
             font-size: 14px;
             line-height: 1.35;
+            -webkit-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
         }
         .paper-sheet.active {
             display: block;
@@ -462,6 +470,7 @@
         .contract-page {
             position: relative;
             width: 210mm;
+            min-width: 210mm;
             min-height: 297mm;
             padding: 20mm 20mm 20mm 25mm;
             background: white;
@@ -666,12 +675,63 @@
         }
         @keyframes fadeIn { from { opacity: 0; bottom: 10px; } to { opacity: 1; bottom: 30px; } }
 
+        /* ================= BUỒNG KẾT XUẤT PDF CHUẨN MÁY TÍNH (ẨN NGOÀI MÀN HÌNH) ================= */
+        #desktop-print-chamber {
+            position: fixed;
+            top: 0;
+            left: -9999px;
+            width: 794px;
+            background: #ffffff;
+            z-index: -9999;
+            pointer-events: none;
+            -webkit-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
+        }
+        #desktop-print-chamber .paper-sheet {
+            display: block !important;
+            width: 794px !important;
+            min-width: 794px !important;
+            min-height: 1123px !important;
+            padding: 12mm 10mm !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: #ffffff !important;
+            font-family: 'Times New Roman', Times, serif !important;
+            font-size: 14px !important;
+            line-height: 1.35 !important;
+            transform: none !important;
+        }
+        #desktop-print-chamber #page-view-2,
+        #desktop-print-chamber #page-view-5 {
+            padding: 0 !important;
+        }
+        #desktop-print-chamber .contract-page {
+            width: 794px !important;
+            min-width: 794px !important;
+            height: 1123px !important;
+            min-height: 1123px !important;
+            padding: 20mm 20mm 20mm 25mm !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+        }
+        #desktop-print-chamber .cccd-print-page {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            padding: 25mm 15mm !important;
+            gap: 20mm !important;
+        }
+
         /* ================= CHẾ ĐỘ MOBI APP ================= */
         @media screen {
             body.is-mobile-app {
                 height: auto !important;
                 min-height: 100vh !important;
                 overflow-y: auto !important;
+                overflow-x: hidden !important;
                 display: block !important;
                 background: #f1f5f9 !important;
             }
@@ -739,14 +799,14 @@
                 width: 100% !important;
             }
 
-            /* CỠ CHỮ TRÊN MOBI */
+            /* CỠ CHỮ TRÊN MOBI (CHỈ ÁP DỤNG CHO KHUNG NHẬP LIỆU, KHÔNG ĐỤNG TỚI GIẤY A4) */
             body.is-mobile-app .btn-toggle-mobi { font-size: 21px !important; padding: 16px !important; }
             body.is-mobile-app .note-quangdu { font-size: 24px !important; line-height: 1.5 !important; padding: 16px !important; }
             body.is-mobile-app .note-quangdu span { font-size: 19.5px !important; }
             body.is-mobile-app .note-quangdu div { font-size: 21px !important; margin-top: 5px !important; }
             body.is-mobile-app .user-info-badge, 
             body.is-mobile-app .key-status-badge { font-size: 19.5px !important; padding: 15px !important; }
-            body.is-mobile-app h2 { font-size: 24px !important; }
+            body.is-mobile-app .sidebar-panel h2 { font-size: 24px !important; }
             body.is-mobile-app .section-tag { font-size: 18px !important; padding: 10px 15px !important; }
             body.is-mobile-app .btn-scan-cccd { font-size: 19px !important; padding: 14px !important; }
             body.is-mobile-app .btn-capture-cccd { font-size: 19px !important; padding: 14px !important; }
@@ -765,9 +825,9 @@
                 width: 100% !important;
                 max-width: 100vw !important;
                 padding: 15px 8px 35px 8px !important;
-                overflow: visible !important;
-                display: flex !important;
-                justify-content: center !important;
+                overflow-x: hidden !important;
+                overflow-y: visible !important;
+                display: block !important;
                 background: #cbd5e1 !important;
                 border-top: 2px dashed #94a3b8;
             }
@@ -775,10 +835,11 @@
 
         /* ================= PHẦN IN DÙNG CHUNG 100% THÔNG SỐ VỚI MÁY TÍNH ================= */
         @media print {
-            html, body {
+            html, body, body.is-mobile-app {
                 background: white !important;
                 display: block !important;
-                width: 100% !important;
+                width: 210mm !important;
+                min-width: 210mm !important;
                 height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -787,16 +848,19 @@
                 print-color-adjust: exact !important;
             }
 
-            .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #login-overlay, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container, #qr-field-scanner-container-1d, #custom-toast {
+            .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #login-overlay, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container, #qr-field-scanner-container-1d, #custom-toast, #desktop-print-chamber {
                 display: none !important;
             }
 
-            .app-wrapper, .main-content-panel, .preview-panel {
+            .app-wrapper, body.is-mobile-app .app-wrapper,
+            .main-content-panel, body.is-mobile-app .main-content-panel,
+            .preview-panel, body.is-mobile-app .preview-panel {
                 display: block !important;
-                width: 100% !important;
+                width: 210mm !important;
+                max-width: none !important;
                 height: auto !important;
                 padding: 0 !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
                 border: none !important;
                 background: white !important;
                 overflow: visible !important;
@@ -805,6 +869,7 @@
             .a4-scale-wrapper {
                 transform: none !important;
                 width: 210mm !important;
+                min-width: 210mm !important;
                 height: auto !important;
                 margin: 0 auto !important;
             }
@@ -812,9 +877,11 @@
             .paper-sheet {
                 box-sizing: border-box !important;
                 width: 210mm !important;
+                min-width: 210mm !important;
                 height: auto !important;
-                min-height: 270mm !important;
-                padding: 10mm 15mm !important;
+                min-height: 297mm !important;
+                padding: 12mm 10mm !important;
+                margin: 0 !important;
                 font-family: 'Times New Roman', Times, serif !important;
                 font-size: 14px !important;
                 line-height: 1.35 !important;
@@ -829,8 +896,11 @@
                 padding: 0 !important;
             }
             #page-view-2 .contract-page, #page-view-5 .contract-page {
+                width: 210mm !important;
+                min-width: 210mm !important;
                 padding: 20mm 20mm 20mm 25mm !important;
                 height: 297mm !important;
+                min-height: 297mm !important;
                 box-shadow: none !important;
                 margin-bottom: 0 !important;
                 page-break-after: always !important;
@@ -839,8 +909,8 @@
 
             .cccd-print-page.active {
                 display: flex !important;
-                padding: 20mm 15mm !important;
-                gap: 18mm !important;
+                padding: 25mm 15mm !important;
+                gap: 20mm !important;
             }
 
             .header-box-ch { padding: 6px 8px !important; font-size: 12px !important; }
@@ -855,7 +925,7 @@
 </head>
 <body>
 
-    <!-- MÀN HÌNH ĐĂNG NHẬP / KÍCH HOẠT KEY (TỪ CODE 1) -->
+    <!-- MÀN HÌNH ĐĂNG NHẬP / KÍCH HOẠT KEY -->
     <div id="login-overlay" style="display: none;">
         <div class="login-box">
             <h3 id="form-title">Đăng nhập hệ thống</h3>
@@ -1039,7 +1109,7 @@
                 <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
                 <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-                <!-- KHUNG QUÉT 2D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (DÙNG THUẬT TOÁN QR CCCD CHUẨN) -->
+                <!-- KHUNG QUÉT 2D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC -->
                 <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #7c3aed;">
                     <div id="field-scan-status" style="color: #c4b5fd; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
                         Đưa mã QR 2D vào khung vuông
@@ -1065,7 +1135,7 @@
                     <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 8px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
                 </div>
 
-                <!-- KHUNG QUÉT 1D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (DÙNG HTML5Qrcode) -->
+                <!-- KHUNG QUÉT 1D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC -->
                 <div id="qr-field-scanner-container-1d" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                     <div id="qr-field-scan-title-1d" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét 1D...</div>
                     <div id="qr-field-reader-1d" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
@@ -2049,7 +2119,7 @@
                                     Ảnh này gồm QR + thông tin khách hàng:
                                 </div>
 
-                                <img id="qrImage" alt="QR HD Saison" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
+                                <img id="qrImage" crossorigin="anonymous" alt="QR HD Saison" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
 
                                 <div style="max-width: 500px; margin: 0 auto; text-align: left;">
                                     <div class="info-line" id="infoContract" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
@@ -2103,6 +2173,9 @@
     <!-- HỘP THÔNG BÁO TỰ TẮT -->
     <div id="custom-toast"></div>
 
+    <!-- BUỒNG KẾT XUẤT PDF CHUẨN KHỔ A4 MÁY TÍNH -->
+    <div id="desktop-print-chamber"></div>
+
     <!-- Canvas ảo dùng để xử lý ảnh -->
     <canvas id="hidden-capture-canvas" style="display: none;"></canvas>
     <canvas id="qr-preprocess-canvas" style="display: none;"></canvas>
@@ -2117,7 +2190,7 @@
     <script>
         const ORIGINAL_DOC_TITLE = document.title;
 
-        // ================= HỆ THỐNG BẢN QUYỀN (TỪ CODE 1) =================
+        // ================= HỆ THỐNG BẢN QUYỀN =================
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSNT99dYifCMmJ4CH7-By1IHZe7Wua8m3A1HvpHpo93OamSlxY80XVP0sYQNYNhxGw/exec";
 
         function getFreshApiUrl() {
@@ -2359,7 +2432,7 @@
             location.reload();
         }
 
-        // ================= TÍNH NĂNG GỐC CỦA CODE 2 & ĐỒNG BỘ DỮ LIỆU =================
+        // ================= TÍNH NĂNG IN & XUẤT PDF CHUẨN A4 MÁY TÍNH =================
         function stripZaloTrackingUrl() {
             try {
                 if (window.location.search || window.location.hash) {
@@ -2376,25 +2449,40 @@
 
         async function cleanPrint() {
             stripZaloTrackingUrl();
+            syncData();
+            syncPage7();
 
             if (isMobileDevice() && window.html2canvas && window.jspdf) {
                 const activeSheet = document.querySelector('.paper-sheet.active');
-                const wrapper = document.getElementById('a4-scale-wrapper');
+                const chamber = document.getElementById('desktop-print-chamber');
                 const btnPrint = document.getElementById('btn-main-print');
-                if (!activeSheet || !wrapper) return;
+                if (!activeSheet || !chamber) return;
 
                 const oldBtnText = btnPrint.innerText;
-                btnPrint.innerText = "⏳ ĐANG TẠO BẢN IN A4 SẠCH (KHÔNG LINK)...";
+                btnPrint.innerText = "⏳ ĐANG KẾT XUẤT PDF CHUẨN A4 MÁY TÍNH...";
                 btnPrint.disabled = true;
 
-                const savedTransform = wrapper.style.transform;
-                const savedMargin = wrapper.style.marginBottom;
-                const savedShadow = activeSheet.style.boxShadow;
-                wrapper.style.transform = 'none';
-                wrapper.style.marginBottom = '0px';
-                activeSheet.style.boxShadow = 'none';
-
                 try {
+                    // Đưa bản sao vào buồng kết xuất chuẩn màn hình máy tính (794px x 1123px)
+                    chamber.innerHTML = '';
+                    const clonedSheet = activeSheet.cloneNode(true);
+                    clonedSheet.classList.add('active');
+                    chamber.appendChild(clonedSheet);
+
+                    // Chờ toàn bộ hình ảnh (QR, CCCD) nạp hoàn tất trong buồng kết xuất
+                    const imgs = clonedSheet.querySelectorAll('img');
+                    await Promise.all(Array.from(imgs).map(img => {
+                        if (!img.src || img.style.display === 'none') return Promise.resolve();
+                        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+                        return new Promise(resolve => {
+                            img.onload = resolve;
+                            img.onerror = resolve;
+                        });
+                    }));
+
+                    // Chờ trình duyệt ổn định bố cục chuẩn Desktop
+                    await new Promise(r => setTimeout(r, 120));
+
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF({
                         orientation: 'portrait',
@@ -2403,37 +2491,49 @@
                         compress: true
                     });
 
-                    const contractPages = activeSheet.querySelectorAll('.contract-page');
+                    const A4_WIDTH_PX = 794;
+                    const A4_HEIGHT_PX = 1123;
+
+                    const contractPages = clonedSheet.querySelectorAll('.contract-page');
                     if (contractPages.length > 0) {
                         for (let i = 0; i < contractPages.length; i++) {
                             const pageEl = contractPages[i];
-                            const oldPageShadow = pageEl.style.boxShadow;
-                            pageEl.style.boxShadow = 'none';
                             const canvas = await html2canvas(pageEl, {
                                 scale: 2.5,
                                 useCORS: true,
+                                allowTaint: true,
                                 backgroundColor: '#ffffff',
+                                width: A4_WIDTH_PX,
+                                height: A4_HEIGHT_PX,
+                                windowWidth: 1440,
+                                scrollX: 0,
+                                scrollY: 0,
                                 logging: false
                             });
-                            pageEl.style.boxShadow = oldPageShadow;
                             const imgData = canvas.toDataURL('image/jpeg', 0.98);
                             if (i > 0) pdf.addPage();
                             pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
                         }
                     } else {
-                        const canvas = await html2canvas(activeSheet, {
+                        const actualHeight = Math.max(A4_HEIGHT_PX, clonedSheet.scrollHeight);
+                        const canvas = await html2canvas(clonedSheet, {
                             scale: 2.5,
                             useCORS: true,
+                            allowTaint: true,
                             backgroundColor: '#ffffff',
+                            width: A4_WIDTH_PX,
+                            height: actualHeight,
+                            windowWidth: 1440,
+                            scrollX: 0,
+                            scrollY: 0,
                             logging: false
                         });
                         const imgData = canvas.toDataURL('image/jpeg', 0.98);
-                        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                        const pdfImgHeight = (canvas.height * 210) / canvas.width;
+                        pdf.addImage(imgData, 'JPEG', 0, 0, 210, pdfImgHeight <= 300 ? 297 : pdfImgHeight);
                     }
 
-                    wrapper.style.transform = savedTransform;
-                    wrapper.style.marginBottom = savedMargin;
-                    activeSheet.style.boxShadow = savedShadow;
+                    chamber.innerHTML = '';
 
                     const soHD = document.getElementById('in_sohd') ? document.getElementById('in_sohd').value.trim() : 'A4';
                     const fileName = `Phieu_In_${soHD}.pdf`;
@@ -2452,15 +2552,22 @@
                             pdf.save(fileName);
                         }
                     }
-                    showToast("✅ Đã tạo bản in A4 sạch 100% không dính link!");
+                    showToast("✅ Đã xuất PDF chuẩn 100% khổ A4 Máy tính!");
                 } catch (err) {
-                    wrapper.style.transform = savedTransform;
-                    wrapper.style.marginBottom = savedMargin;
-                    activeSheet.style.boxShadow = savedShadow;
+                    chamber.innerHTML = '';
                     if (err && err.name !== 'AbortError') {
+                        const wasMobile = document.body.classList.contains('is-mobile-app');
+                        if (wasMobile) document.body.classList.remove('is-mobile-app');
+                        autoScaleA4Preview();
                         document.title = "\u200B";
-                        window.print();
-                        setTimeout(() => { document.title = ORIGINAL_DOC_TITLE; }, 1000);
+                        setTimeout(() => {
+                            window.print();
+                            setTimeout(() => {
+                                document.title = ORIGINAL_DOC_TITLE;
+                                if (wasMobile) document.body.classList.add('is-mobile-app');
+                                autoScaleA4Preview();
+                            }, 800);
+                        }, 100);
                     }
                 } finally {
                     btnPrint.innerText = oldBtnText;
@@ -2502,15 +2609,21 @@
             if (!wrapper || !container) return;
 
             if (document.body.classList.contains('is-mobile-app')) {
-                const containerWidth = container.clientWidth - 16;
+                const containerWidth = Math.max(300, container.clientWidth - 16);
                 const a4StandardPx = 794;
-                const a4StandardHeightPx = wrapper.scrollHeight || 1123;
                 const scaleRatio = containerWidth / a4StandardPx;
 
+                wrapper.style.transformOrigin = 'top left';
                 wrapper.style.transform = `scale(${scaleRatio})`;
-                wrapper.style.marginBottom = `-${(a4StandardHeightPx * (1 - scaleRatio))}px`;
+                wrapper.style.margin = '0';
+
+                const activeSheet = wrapper.querySelector('.paper-sheet.active');
+                const actualHeightPx = activeSheet ? activeSheet.offsetHeight : 1123;
+                wrapper.style.marginBottom = `-${Math.floor(actualHeightPx * (1 - scaleRatio))}px`;
             } else {
+                wrapper.style.transformOrigin = 'top center';
                 wrapper.style.transform = 'none';
+                wrapper.style.margin = '0 auto';
                 wrapper.style.marginBottom = '0px';
             }
         }
@@ -3536,13 +3649,13 @@
         }
 
         function generateQR() {
-            var amountInput     = (document.getElementById("qr_amount").value || "").trim();
-            var monthlyInput    = (document.getElementById("qr_monthlyAmount").value || "").trim();
-            var contract        = (document.getElementById("qr_contract").value || "").trim();
-            var name            = (document.getElementById("qr_name").value || "").trim().toUpperCase();
-            var contractISO     = (document.getElementById("qr_contractDate").value || "").trim();
-            var firstISO        = (document.getElementById("qr_firstPaymentDate").value || "").trim();
-            var lastISO         = (document.getElementById("qr_lastPaymentDate").value || "").trim();
+            var amountInput    = (document.getElementById("qr_amount").value || "").trim();
+            var monthlyInput   = (document.getElementById("qr_monthlyAmount").value || "").trim();
+            var contract       = (document.getElementById("qr_contract").value || "").trim();
+            var name           = (document.getElementById("qr_name").value || "").trim().toUpperCase();
+            var contractISO    = (document.getElementById("qr_contractDate").value || "").trim();
+            var firstISO       = (document.getElementById("qr_firstPaymentDate").value || "").trim();
+            var lastISO        = (document.getElementById("qr_lastPaymentDate").value || "").trim();
 
             if (!contract || !name) {
                 alert("Vui lòng nhập Số Hợp Đồng và Tên Khách Hàng!");
@@ -3574,6 +3687,7 @@
             }
 
             var img = document.getElementById("qrImage");
+            img.crossOrigin = "anonymous";
             img.src = qrUrl;
 
             document.getElementById("infoContract").innerText = "Số HĐ: " + contract;
@@ -3605,6 +3719,7 @@
             var resultDiv = document.getElementById("qr-result");
             resultDiv.style.display = "block";
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(autoScaleA4Preview, 150);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
