@@ -110,39 +110,25 @@
             background: #fff;
         }
 
-        /* NÚT QUÉT MÃ 1D/2D CHO SỐ KHUNG, SỐ MÁY, SERI (HỖ TRỢ 2 NÚT GÓC RỘNG & GÓC HẸP) */
-        .input-with-btns {
+        /* NÚT QUÉT MÃ 1D/2D CHO SỐ KHUNG, SỐ MÁY, SERI */
+        .input-with-btn {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             align-items: center;
         }
-        .btn-scan-field-wide {
+        .btn-scan-field {
             background: #2563eb;
             color: white;
             border: none;
-            padding: 8px 10px;
+            padding: 8px 12px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             white-space: nowrap;
             flex-shrink: 0;
         }
-        .btn-scan-field-wide:hover { background: #1d4ed8; }
-
-        .btn-scan-field-narrow {
-            background: #0d9488;
-            color: white;
-            border: none;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .btn-scan-field-narrow:hover { background: #0f766e; }
+        .btn-scan-field:hover { background: #1d4ed8; }
 
         /* NÚT THAO TÁC CAMERA */
         .btn-scan-cccd {
@@ -180,19 +166,6 @@
             margin-bottom: 6px;
         }
         .btn-capture-cccd:hover { background: #0369a1; }
-
-        /* GIỮ NGUYÊN KÍCH THƯỚC KHUNG CAMERA QUÉT NHƯ CODE 1 */
-        #qr-cccd-video {
-            max-height: 210px !important;
-            object-fit: cover !important;
-        }
-        #qr-field-reader {
-            min-height: 240px !important;
-        }
-        #qr-field-reader video {
-            max-height: 260px !important;
-            object-fit: cover !important;
-        }
 
         /* KHU VỰC CHỌN TRANG & IN (GIAO DIỆN MÁY TÍNH) */
         .bottom-action-box {
@@ -480,8 +453,7 @@
             body.is-mobile-app .section-tag { font-size: 18px !important; padding: 10px 15px !important; }
             body.is-mobile-app .btn-scan-cccd { font-size: 19px !important; padding: 14px !important; }
             body.is-mobile-app .btn-capture-cccd { font-size: 19px !important; padding: 14px !important; }
-            body.is-mobile-app .btn-scan-field-wide,
-            body.is-mobile-app .btn-scan-field-narrow { font-size: 16px !important; padding: 10px 12px !important; }
+            body.is-mobile-app .btn-scan-field { font-size: 18px !important; padding: 10px 14px !important; }
             body.is-mobile-app .form-group label { font-size: 18px !important; margin-bottom: 5px !important; }
             body.is-mobile-app .form-group input, 
             body.is-mobile-app .form-group select { font-size: 19.5px !important; padding: 12px 15px !important; }
@@ -489,7 +461,7 @@
             body.is-mobile-app .tab-btn { font-size: 17px !important; padding: 12px 3px !important; }
             body.is-mobile-app .btn-print-submit { font-size: 21px !important; padding: 16px !important; }
 
-            /* VÙNG CHỨA BẢN XEM TRƯỚC TRÊN MOBILE */
+            /* VÙNG CHỨA BẢN XEM TRƯỚC TRÊN MOBILE: KHỚP VỪA VẶN MÀN HÌNH */
             body.is-mobile-app .preview-panel {
                 order: 2 !important;
                 width: 100% !important;
@@ -654,7 +626,7 @@
                     </div>
                 </div>
                 
-                <!-- Thanh điều chỉnh Zoom -->
+                <!-- Thanh điều chỉnh Zoom & Đèn Flash -->
                 <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
                     <span>Thu nhỏ</span>
                     <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
@@ -724,10 +696,10 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D VÀ 2D -->
+            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D VÀ 2D CHUẨN CODE 1 TO RÕ -->
             <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                 <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét mã 1D / 2D...</div>
-                <div id="qr-field-reader" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
+                <div id="qr-field-reader" style="width: 100%; background: #000; border-radius: 6px; overflow: hidden;"></div>
                 <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 6px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
@@ -745,30 +717,27 @@
             <!-- SỐ KHUNG -->
             <div class="form-group">
                 <label>Số khung (SK)</label>
-                <div class="input-with-btns">
+                <div class="input-with-btn">
                     <input type="text" id="in_sk" value="702436" oninput="syncData()">
-                    <button type="button" class="btn-scan-field-wide" onclick="startFieldScanner('in_sk', 'Số khung (SK)', 'wide')">📷 Quét Rộng</button>
-                    <button type="button" class="btn-scan-field-narrow" onclick="startFieldScanner('in_sk', 'Số khung (SK)', 'narrow')">🔎 Quét Hẹp</button>
+                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_sk', 'Số khung (SK)')">📷 Quét 1D/2D</button>
                 </div>
             </div>
 
             <!-- SỐ MÁY -->
             <div class="form-group">
                 <label>Số máy (SM)</label>
-                <div class="input-with-btns">
+                <div class="input-with-btn">
                     <input type="text" id="in_sm" value="250212" oninput="syncData()">
-                    <button type="button" class="btn-scan-field-wide" onclick="startFieldScanner('in_sm', 'Số máy (SM)', 'wide')">📷 Quét Rộng</button>
-                    <button type="button" class="btn-scan-field-narrow" onclick="startFieldScanner('in_sm', 'Số máy (SM)', 'narrow')">🔎 Quét Hẹp</button>
+                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_sm', 'Số máy (SM)')">📷 Quét 1D/2D</button>
                 </div>
             </div>
 
             <!-- SỐ SERI SẠC -->
             <div class="form-group">
                 <label>Số seri sạc</label>
-                <div class="input-with-btns">
+                <div class="input-with-btn">
                     <input type="text" id="in_serisac" value="DRT00011629GB0003001260811D06705" oninput="syncData()">
-                    <button type="button" class="btn-scan-field-wide" onclick="startFieldScanner('in_serisac', 'Số seri sạc', 'wide')">📷 Quét Rộng</button>
-                    <button type="button" class="btn-scan-field-narrow" onclick="startFieldScanner('in_serisac', 'Số seri sạc', 'narrow')">🔎 Quét Hẹp</button>
+                    <button type="button" class="btn-scan-field" onclick="startFieldScanner('in_serisac', 'Số seri sạc')">📷 Quét 1D/2D</button>
                 </div>
             </div>
 
@@ -1364,19 +1333,17 @@
             }
         }
 
-        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC =================
+        // ================= 4. THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (LẤY CHUẨN CODE 1) =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
 
-        async function startFieldScanner(fieldId, fieldLabel, mode = 'wide') {
+        async function startFieldScanner(fieldId, fieldLabel) {
             await stopAllRunningCameras();
             currentTargetFieldId = fieldId;
             const container = document.getElementById('qr-field-scanner-container');
             const title = document.getElementById('qr-field-scan-title');
-            
-            const modeName = (mode === 'wide') ? 'Rộng (Code 1)' : 'Hẹp / Macro (Code 2)';
-            title.innerText = `Đang quét ${fieldLabel} - Chế độ: ${modeName}`;
+            title.innerText = "Đưa mã vạch 1D hoặc mã QR của " + fieldLabel + " vào khung chữ nhật";
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
 
@@ -1389,23 +1356,16 @@
             }
 
             const config = {
-                fps: 25,
+                fps: 20,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    if (mode === 'wide') {
-                        const boxWidth = Math.max(220, Math.floor(viewfinderWidth * 0.85));
-                        const boxHeight = Math.max(100, Math.floor(viewfinderHeight * 0.45));
-                        return { width: boxWidth, height: boxHeight };
-                    } else {
-                        const boxWidth = Math.floor(viewfinderWidth * 0.92);
-                        const boxHeight = Math.floor(viewfinderHeight * 0.65);
-                        return { width: boxWidth, height: boxHeight };
-                    }
+                    const boxWidth = Math.max(220, Math.floor(viewfinderWidth * 0.85));
+                    const boxHeight = Math.max(100, Math.floor(viewfinderHeight * 0.45));
+                    return { width: boxWidth, height: boxHeight };
                 },
                 videoConstraints: {
                     facingMode: { ideal: "environment" },
                     width: { ideal: 1920, min: 1280 },
-                    height: { ideal: 1080, min: 720 },
-                    focusMode: "continuous"
+                    height: { ideal: 1080, min: 720 }
                 },
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.QR_CODE,
@@ -1439,22 +1399,8 @@
                     (errorMessage) => {}
                 );
                 isFieldScannerRunning = true;
-
-                if (mode === 'narrow') {
-                    try {
-                        const videoTrack = fieldScanner.getRunningTrack();
-                        if (videoTrack && videoTrack.getCapabilities) {
-                            const caps = videoTrack.getCapabilities();
-                            if (caps.zoom) {
-                                const targetZoom = Math.min(1.5, caps.zoom.max);
-                                videoTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] }).catch(() => {});
-                            }
-                        }
-                    } catch(e) {}
-                }
-
             } catch (err) {
-                alert("Không thể khởi động camera quét mã: " + err);
+                alert("Không thể khởi động camera quét mã 1D/2D: " + err);
                 container.style.display = 'none';
                 isFieldScannerRunning = false;
             }
@@ -1474,7 +1420,7 @@
             }
         }
 
-        // ================= THUẬT TOÁN CHỤP ẢNH TỰ ĐỘNG CẮT VIỀN CCCD =================
+        // ================= 5. THUẬT TOÁN CHỤP ẢNH TỰ ĐỘNG CẮT VIỀN CCCD =================
         let captureStream = null;
         let currentCaptureStep = 1;
         let frontImageBase64 = null;
