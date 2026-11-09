@@ -172,8 +172,12 @@
             max-height: 210px !important;
             object-fit: cover !important;
         }
+        /* MỞ RỘNG HIỂN THỊ CAMERA QUÉT 1D/2D SỐ KHUNG SỐ MÁY TO RÕ */
+        #qr-field-reader {
+            min-height: 240px !important;
+        }
         #qr-field-reader video {
-            max-height: 190px !important;
+            max-height: 260px !important;
             object-fit: cover !important;
         }
 
@@ -707,11 +711,11 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D (MÃ VẠCH SỌC) VÀ 2D (QR) (ĐÃ THU NGẮN) -->
-            <div id="qr-field-scanner-container" style="display: none; margin-bottom: 6px; position: relative; background: #0f172a; padding: 8px; border-radius: 8px; border: 2px solid #2563eb;">
-                <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 12.5px; text-align: center; margin-bottom: 5px;">Đang quét mã 1D / 2D...</div>
-                <div id="qr-field-reader" style="width: 100%; max-height: 190px; background: #000; border-radius: 6px; overflow: hidden;"></div>
-                <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 6px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
+            <!-- KHUNG QUÉT CAMERA CHỮ NHẬT HỖ TRỢ 1D (MÃ VẠCH SỌC) VÀ 2D (QR) (ĐÃ MỞ RỘNG TO RÕ) -->
+            <div id="qr-field-scanner-container" style="display: none; margin-bottom: 6px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
+                <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đưa mã vạch 1D hoặc mã QR vào khung</div>
+                <div id="qr-field-reader" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
+                <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
             <div class="grid-2">
@@ -1353,7 +1357,7 @@
             }
         }
 
-        // ================= 4. XỬ LÝ QUÉT ĐA ĐỊNH DẠNG 1D & 2D CHO SK, SM, SERI SẠC =================
+        // ================= 4. XỬ LÝ QUÉT ĐA ĐỊNH DẠNG 1D & 2D CHO SK, SM, SERI SẠC (ĐÃ TỐI ƯU TO RÕ & SIÊU NHẠY) =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
@@ -1363,7 +1367,7 @@
             currentTargetFieldId = fieldId;
             const container = document.getElementById('qr-field-scanner-container');
             const title = document.getElementById('qr-field-scan-title');
-            title.innerText = "Đưa mã vạch 1D hoặc mã QR của " + fieldLabel + " vào khung chữ nhật";
+            title.innerText = "Đưa mã vạch hoặc mã QR của " + fieldLabel + " vào khung lớn";
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
 
@@ -1375,17 +1379,19 @@
                 });
             }
 
+            // Mở rộng khung quét QRbox to rõ (92% chiều rộng và 65% chiều cao) giúp nhận diện mã dài dễ dàng
             const config = {
-                fps: 20,
+                fps: 25,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    const boxWidth = Math.max(200, Math.floor(viewfinderWidth * 0.82));
-                    const boxHeight = Math.max(80, Math.floor(viewfinderHeight * 0.42));
+                    const boxWidth = Math.floor(viewfinderWidth * 0.92);
+                    const boxHeight = Math.floor(viewfinderHeight * 0.65);
                     return { width: boxWidth, height: boxHeight };
                 },
                 videoConstraints: {
                     facingMode: { ideal: "environment" },
                     width: { ideal: 1920, min: 1280 },
-                    height: { ideal: 1080, min: 720 }
+                    height: { ideal: 1080, min: 720 },
+                    focusMode: "continuous"
                 },
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.QR_CODE,
@@ -1419,6 +1425,19 @@
                     (errorMessage) => {}
                 );
                 isFieldScannerRunning = true;
+
+                // Tự động kích hoạt zoom 1.5x để hỗ trợ camera bắt nét gần (macro) các mã vạch nhỏ
+                try {
+                    const videoTrack = fieldScanner.getRunningTrack();
+                    if (videoTrack && videoTrack.getCapabilities) {
+                        const caps = videoTrack.getCapabilities();
+                        if (caps.zoom) {
+                            const targetZoom = Math.min(1.5, caps.zoom.max);
+                            videoTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] }).catch(() => {});
+                        }
+                    }
+                } catch(e) {}
+
             } catch (err) {
                 alert("Không thể khởi động camera quét mã 1D/2D: " + err);
                 container.style.display = 'none';
@@ -1465,7 +1484,6 @@
                 video.srcObject = captureStream;
                 await video.play();
 
-                // Kích hoạt lấy nét liên tục nếu camera hỗ trợ
                 const track = captureStream.getVideoTracks()[0];
                 if (track && track.getCapabilities) {
                     const caps = track.getCapabilities();
@@ -1507,28 +1525,21 @@
             }
         }
 
-        /**
-         * Ánh xạ chính xác 100% vị trí khung xanh (#capture-guide-box) 
-         * trên màn hình sang tọa độ Pixel thực của luồng Video (Bất chấp object-fit: cover)
-         */
         function extractGuideBoxFromVideo(video, guideBox) {
             const vw = video.videoWidth;
             const vh = video.videoHeight;
             const videoRect = video.getBoundingClientRect();
             const guideRect = guideBox.getBoundingClientRect();
 
-            // Tính tỷ lệ scale của object-fit: cover
             const scaleX = vw / videoRect.width;
             const scaleY = vh / videoRect.height;
             const coverScale = Math.max(scaleX, scaleY);
 
-            // Phần hình ảnh video bị tràn (crop ẩn) do object-fit: cover
             const renderedWidth = vw / coverScale;
             const renderedHeight = vh / coverScale;
             const offsetX = (renderedWidth - videoRect.width) / 2;
             const offsetY = (renderedHeight - videoRect.height) / 2;
 
-            // Tọa độ của khung ngắm so với khung video hiển thị (Lấy rộng ra thêm 4% để dò biên thẻ)
             const padW = guideRect.width * 0.04;
             const padH = guideRect.height * 0.04;
 
@@ -1537,7 +1548,6 @@
             const relW = guideRect.width + (padW * 2);
             const relH = guideRect.height + (padH * 2);
 
-            // Quy đổi sang pixel thực của cảm biến camera
             const sx = Math.max(0, Math.floor(relX * coverScale));
             const sy = Math.max(0, Math.floor(relY * coverScale));
             const sw = Math.min(vw - sx, Math.floor(relW * coverScale));
@@ -1552,10 +1562,6 @@
             return rawCanvas;
         }
 
-        /**
-         * Thuật toán dò tìm cạnh thẻ tự động (Smart Edge Detection)
-         * Quét từ 4 mép ngoài vào trong để tìm sự thay đổi đột ngột về màu sắc/độ sáng giữa Mặt bàn và Thẻ CCCD
-         */
         function detectCardEdgesAndCrop(sourceCanvas) {
             const w = sourceCanvas.width;
             const h = sourceCanvas.height;
@@ -1575,7 +1581,6 @@
             const maxScanY = Math.floor(h * 0.18);
             const edgeThreshold = 42;
 
-            // 1. Dò cạnh TRÊN
             let topEdge = Math.floor(h * 0.035);
             let topScores = [];
             for (let x = Math.floor(w * 0.2); x < Math.floor(w * 0.8); x += 8) {
@@ -1590,7 +1595,6 @@
                 }
             }
 
-            // 2. Dò cạnh DƯỚI
             let bottomEdge = h - Math.floor(h * 0.035);
             let bottomScores = [];
             for (let x = Math.floor(w * 0.2); x < Math.floor(w * 0.8); x += 8) {
@@ -1605,7 +1609,6 @@
                 }
             }
 
-            // 3. Dò cạnh TRÁI
             let leftEdge = Math.floor(w * 0.035);
             let leftScores = [];
             for (let y = Math.floor(h * 0.2); y < Math.floor(h * 0.8); y += 8) {
@@ -1620,7 +1623,6 @@
                 }
             }
 
-            // 4. Dò cạnh PHẢI
             let rightEdge = w - Math.floor(w * 0.035);
             let rightScores = [];
             for (let y = Math.floor(h * 0.2); y < Math.floor(h * 0.8); y += 8) {
@@ -1674,9 +1676,6 @@
             return outCanvas;
         }
 
-        /**
-         * Hiệu ứng làm sáng nền, tăng độ nét chữ kiểu CamScanner & Bo tròn 4 góc chuẩn thẻ CCCD
-         */
         function applyScannerEffectAndRoundCorners(canvas) {
             const w = canvas.width;
             const h = canvas.height;
