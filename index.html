@@ -181,7 +181,7 @@
         }
         .btn-capture-cccd:hover { background: #0369a1; }
 
-        /* KÍCH THƯỚC KHUNG CAMERA QUÉT CHUẨN CODE 1 */
+        /* KÍCH THƯỚC KHUNG CAMERA QUÉT (CHUẨN CODE 1) */
         #qr-cccd-video {
             max-height: 210px !important;
             object-fit: cover !important;
@@ -648,8 +648,8 @@
                 
                 <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
                     <video id="qr-cccd-video" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover;"></video>
-                    <!-- Khung tiêu điểm hình vuông giống Code 1 -->
-                    <div style="position: absolute; top: 50%; left: 50%; width: 175px; height: 175px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
+                    <!-- Khung tiêu điểm nhắm quét -->
+                    <div style="position: absolute; top: 50%; left: 50%; width: 220px; height: 220px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;">
                         <div style="position: absolute; width: 100%; height: 2px; background: #38bdf8; top: 0; box-shadow: 0 0 8px #38bdf8; animation: scanLaser 1.5s infinite alternate;"></div>
                     </div>
                 </div>
@@ -724,7 +724,7 @@
             <!-- 3. THÔNG TIN XE & GIAO DỊCH -->
             <div class="section-tag">3. Thông tin Xe & Giao dịch</div>
 
-            <!-- KHUNG QUÉT CAMERA CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (TO RÕ CHUẨN CODE 1) -->
+            <!-- KHUNG QUÉT CAMERA CHO SỐ KHUNG, SỐ MÁY, SERI SẠC (CHỨA CẢ 2 CHẾ ĐỘ RỘNG & HẸP) -->
             <div id="qr-field-scanner-container" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
                 <div id="qr-field-scan-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét mã 1D / 2D...</div>
                 <div id="qr-field-reader" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
@@ -1364,7 +1364,7 @@
             }
         }
 
-        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC =================
+        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (LẤY CHUẨN CODE 1 CHO QUÉT RỘNG) =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
@@ -1388,9 +1388,9 @@
                 });
             }
 
-            // Nếu mode là 'wide' dùng thuật toán Code 1, 'narrow' dùng chế độ hẹp Code 2
+            // Nếu mode là 'wide' dùng thuật toán Code 1 chuẩn to rộng, 'narrow' dùng chế độ hẹp Code 2
             const config = {
-                fps: 25,
+                fps: (mode === 'wide') ? 20 : 25,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
                     if (mode === 'wide') {
                         const boxWidth = Math.max(220, Math.floor(viewfinderWidth * 0.85));
@@ -1406,7 +1406,7 @@
                     facingMode: { ideal: "environment" },
                     width: { ideal: 1920, min: 1280 },
                     height: { ideal: 1080, min: 720 },
-                    focusMode: "continuous"
+                    ...(mode === 'narrow' ? { focusMode: "continuous" } : {})
                 },
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.QR_CODE,
