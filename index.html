@@ -476,7 +476,7 @@
             body.is-mobile-app .tab-btn { font-size: 17px !important; padding: 12px 3px !important; }
             body.is-mobile-app .btn-print-submit { font-size: 21px !important; padding: 16px !important; }
 
-            /* VÙNG CHỨA BẢN XEM TRƯỚC TRÊN MOBILE: KHỚP VỪA VẶN MÀN HÌNH */
+            /* VÙNG CHỨA BẢN XEM TRƯỚC TRÊN MOBILE */
             body.is-mobile-app .preview-panel {
                 order: 2 !important;
                 width: 100% !important;
@@ -641,7 +641,7 @@
                     </div>
                 </div>
                 
-                <!-- Thanh điều chỉnh Zoom & Đèn Flash -->
+                <!-- Thanh điều chỉnh Zoom -->
                 <div id="zoom-control-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
                     <span>Thu nhỏ</span>
                     <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="2.0" style="flex: 1; margin: 0 10px;" oninput="applyZoom(this.value)">
@@ -729,7 +729,7 @@
                 </div>
             </div>
 
-            <!-- SỐ KHUNG -->
+            <!-- SỐ KHUNG (TÍCH HỢP NÚT QUÉT RỘNG & QUÉT HẸP) -->
             <div class="form-group">
                 <label>Số khung (SK)</label>
                 <div class="input-with-btns">
@@ -739,7 +739,7 @@
                 </div>
             </div>
 
-            <!-- SỐ MÁY -->
+            <!-- SỐ MÁY (TÍCH HỢP NÚT QUÉT RỘNG & QUÉT HẸP) -->
             <div class="form-group">
                 <label>Số máy (SM)</label>
                 <div class="input-with-btns">
@@ -749,7 +749,7 @@
                 </div>
             </div>
 
-            <!-- SỐ SERI SẠC -->
+            <!-- SỐ SERI SẠC (TÍCH HỢP NÚT QUÉT RỘNG & QUÉT HẸP) -->
             <div class="form-group">
                 <label>Số seri sạc</label>
                 <div class="input-with-btns">
@@ -1351,7 +1351,7 @@
             }
         }
 
-        // ================= 4. THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (TÍCH HỢP 2 CHẾ ĐỘ RỘNG & HẸP) =================
+        // ================= THUẬT TOÁN QUÉT SỐ KHUNG, SỐ MÁY, SERI SẠC (TÍCH HỢP CẢ 2 CHẾ ĐỘ RỘNG & HẸP) =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
@@ -1375,7 +1375,6 @@
                 });
             }
 
-            // Cấu hình khung quét (Wide: khung lớn Code 1 / Narrow: khung hẹp Code 2 tối ưu quét gần)
             const config = {
                 fps: 25,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
@@ -1428,7 +1427,6 @@
                 );
                 isFieldScannerRunning = true;
 
-                // Nếu chọn chế độ Hẹp (Narrow), tự động kích hoạt zoom 1.5x hỗ trợ bắt nét macro tem nhãn nhỏ
                 if (mode === 'narrow') {
                     try {
                         const videoTrack = fieldScanner.getRunningTrack();
@@ -1463,7 +1461,7 @@
             }
         }
 
-        // ================= 5. THUẬT TOÁN CHỤP ẢNH TỰ ĐỘNG CẮT VIỀN CCCD =================
+        // ================= THUẬT TOÁN CHỤP ẢNH TỰ ĐỘNG CẮT VIỀN CCCD =================
         let captureStream = null;
         let currentCaptureStep = 1;
         let frontImageBase64 = null;
