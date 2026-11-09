@@ -488,11 +488,16 @@
 
         /* ================= PHẦN IN DÙNG CHUNG 100% THÔNG SỐ VỚI MÁY TÍNH ================= */
         @media print {
-            body {
+            html, body {
                 background: white !important;
                 display: block !important;
-                height: auto !important;
-                overflow: visible !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .sidebar-panel, .btn-toggle-mobi, .bottom-action-box, #qr-cccd-reader-container, #camera-capture-container, #qr-field-scanner-container, #custom-toast {
@@ -501,12 +506,13 @@
 
             .app-wrapper, .main-content-panel, .preview-panel {
                 display: block !important;
-                width: 100% !important;
+                width: 210mm !important;
+                height: 297mm !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 border: none !important;
                 background: white !important;
-                overflow: visible !important;
+                overflow: hidden !important;
             }
 
             .a4-scale-wrapper {
@@ -521,14 +527,16 @@
                 width: 210mm !important;
                 height: 297mm !important;
                 min-height: 297mm !important;
+                max-height: 297mm !important;
                 padding: 12mm 10mm !important;
                 font-family: 'Times New Roman', Times, serif !important;
                 font-size: 14px !important;
                 line-height: 1.35 !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                page-break-after: always !important;
-                break-after: page !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                overflow: hidden !important;
             }
 
             .paper-sheet { display: none !important; }
@@ -549,7 +557,13 @@
 
             @page {
                 size: A4 portrait;
-                margin: 0;
+                margin: 0mm !important;
+                @top-left { content: "" !important; display: none !important; }
+                @top-center { content: "" !important; display: none !important; }
+                @top-right { content: "" !important; display: none !important; }
+                @bottom-left { content: "" !important; display: none !important; }
+                @bottom-center { content: "" !important; display: none !important; }
+                @bottom-right { content: "" !important; display: none !important; }
             }
         }
     </style>
@@ -644,7 +658,7 @@
                 <button type="button" onclick="stopZaloStyleCCCDScanner()" style="width: 100%; margin-top: 6px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
             </div>
 
-            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD (ĐÃ THU NGẮN 1/5 CHIỀU CAO) -->
+            <!-- KHUNG CAMERA CHỤP ẢNH 2 MẶT CCCD (ĐÃ THU NGẮN 1/5 CHIỀU CAO & CẮT VIỀN CHUẨN THEO KHUNG XANH) -->
             <div id="camera-capture-container" style="display: none; flex-direction: column; gap: 6px; background: #0f172a; padding: 8px; border-radius: 8px; border: 2px solid #0284c7; margin-bottom: 8px;">
                 <div id="capture-step-title" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center;">Đang chụp: MẶT TRƯỚC CCCD</div>
                 
@@ -784,7 +798,7 @@
                         <button type="button" class="tab-btn" id="btn-tab-9" onclick="switchPage(9, this)" style="background: #eff6ff; border-color: #3b82f6; color: #1d4ed8;">🪪 Trang 9 (CCCD)</button>
                     </div>
                 </div>
-                <button type="button" class="btn-print-submit" onclick="window.print()">🖨️ IN MẪU ĐANG CHỌN</button>
+                <button type="button" class="btn-print-submit" onclick="cleanPrint()">🖨️ IN MẪU ĐANG CHỌN</button>
             </div>
 
             <!-- CỘT XEM TRƯỚC -->
@@ -891,6 +905,42 @@
     </style>
 
     <script>
+        // ================= 1. TRIỆT TIÊU LINK ZALO (?zarsrc=30&utm_source=zalo...) & TIÊU ĐỀ KHI IN =================
+        const ORIGINAL_DOC_TITLE = document.title;
+
+        function stripZaloTrackingUrl() {
+            try {
+                if (window.location.search || window.location.hash) {
+                    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.replaceState(null, "", cleanUrl);
+                }
+            } catch (e) {}
+        }
+        // Chạy ngay lập tức khi vừa tải trang
+        stripZaloTrackingUrl();
+
+        function cleanPrint() {
+            stripZaloTrackingUrl();
+            document.title = "\u200B"; // Xóa rỗng tiêu đề tạm thời để không in dòng tiêu đề ở đầu trang A4
+
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.title = ORIGINAL_DOC_TITLE;
+                }, 1000);
+            }, 80);
+        }
+
+        window.addEventListener('beforeprint', () => {
+            stripZaloTrackingUrl();
+            document.title = "\u200B";
+        });
+
+        window.addEventListener('afterprint', () => {
+            document.title = ORIGINAL_DOC_TITLE;
+        });
+
+        // ================= 2. GIAO DIỆN & TIỆN ÍCH CHUNG =================
         function showToast(msg, duration = 2500) {
             const toast = document.getElementById('custom-toast');
             toast.innerText = msg;
@@ -954,13 +1004,12 @@
             await stopFieldScanner();
         }
 
-        // ================= LÕI QUÉT QR CCCD C++ WASM (ZBAR) + NATIVE AI + ZXING =================
+        // ================= 3. LÕI QUÉT QR CCCD C++ WASM (ZBAR) + NATIVE AI + ZXING =================
         let cccdZaloStream = null;
         let cccdZaloTrack = null;
         let isScanningCCCD = false;
         let qrDetectorEngine = null;
 
-        // Khởi tạo ZXing dự phòng
         const zxingHints = new Map();
         zxingHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
         zxingHints.set(ZXing.DecodeHintType.CHARACTER_SET, 'UTF-8');
@@ -968,7 +1017,6 @@
         const zxingMultiReader = new ZXing.MultiFormatReader();
         zxingMultiReader.setHints(zxingHints);
 
-        // Khởi tạo BarcodeDetector (Tự động dùng AI phần cứng hoặc C++ ZBar WASM Polyfill)
         async function getQRDetector() {
             if (qrDetectorEngine) return qrDetectorEngine;
             try {
@@ -991,7 +1039,6 @@
         function decodeCanvasWithZXing(canvas) {
             try {
                 const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
-                // Thử HybridBinarizer trước
                 const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
                 const res = zxingMultiReader.decodeWithState(binaryBitmap);
                 zxingMultiReader.reset();
@@ -1001,7 +1048,6 @@
             }
             try {
                 const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
-                // Thử thêm GlobalHistogramBinarizer cho thẻ bị bóng đèn
                 const binaryBitmap2 = new ZXing.BinaryBitmap(new ZXing.GlobalHistogramBinarizer(luminanceSource));
                 const res2 = zxingMultiReader.decodeWithState(binaryBitmap2);
                 zxingMultiReader.reset();
@@ -1012,7 +1058,6 @@
             return null;
         }
 
-        // Giải mã 1 vùng Canvas bằng cả C++ WASM/Native và ZXing
         async function tryDecodeCanvas(canvas) {
             const detector = await getQRDetector();
             if (detector) {
@@ -1041,7 +1086,6 @@
             await getQRDetector();
 
             try {
-                // Yêu cầu độ phân giải cao nhất (Ưu tiên 4K/FullHD để hạt QR CCCD sắc nét)
                 try {
                     cccdZaloStream = await navigator.mediaDevices.getUserMedia({
                         video: {
@@ -1070,7 +1114,6 @@
                     advancedConstraints.push({ focusMode: 'continuous' });
                 }
 
-                // Tự động Zoom 2.0x để điện thoại lấy nét xa mà hạt QR vẫn to
                 if (capabilities.zoom) {
                     zoomBox.style.display = 'flex';
                     const slider = document.getElementById('zoom-slider');
@@ -1107,7 +1150,6 @@
                 const vw = video.videoWidth;
                 const vh = video.videoHeight;
 
-                // 1. Quét vùng trung tâm (60% khung hình) và phóng đại nhẹ lên 800x800 để tách hạt QR
                 const cropSize = Math.floor(Math.min(vw, vh) * 0.60);
                 const sx = Math.floor((vw - cropSize) / 2);
                 const sy = Math.floor((vh - cropSize) / 2);
@@ -1124,7 +1166,6 @@
                     return;
                 }
 
-                // 2. Nếu người dùng để thẻ lệch khung, thử quét toàn khung hình
                 canvas.width = vw;
                 canvas.height = vh;
                 ctx.drawImage(video, 0, 0, vw, vh);
@@ -1157,7 +1198,6 @@
             document.getElementById('qr-cccd-reader-container').style.display = 'none';
         }
 
-        // THUẬT TOÁN QUÉT ẢNH TỪ FILE: Tự động cắt 4 góc + Trung tâm để tìm hạt QR nhỏ trong ảnh 12MP
         async function scanQRFromFile(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -1170,19 +1210,17 @@
                 const iw = img.width;
                 const ih = img.height;
 
-                // Danh sách 7 vùng cắt thông minh: Toàn ảnh, Giữa ảnh, Góc phải trên (vị trí QR CCCD chuẩn), Góc trái trên, Phải dưới, Trái dưới
                 const regions = [
-                    { x: 0, y: 0, w: iw, h: ih },                                  // Toàn bộ ảnh
-                    { x: iw * 0.45, y: 0, w: iw * 0.55, h: ih * 0.55 },            // Góc trên bên phải (nơi đặt QR trên mặt trước CCCD)
-                    { x: iw * 0.15, y: ih * 0.15, w: iw * 0.70, h: ih * 0.70 },    // Vùng trung tâm 70%
-                    { x: 0, y: 0, w: iw * 0.55, h: ih * 0.55 },                    // Góc trên bên trái
-                    { x: iw * 0.45, y: ih * 0.45, w: iw * 0.55, h: ih * 0.55 },    // Góc dưới bên phải
-                    { x: 0, y: ih * 0.45, w: iw * 0.55, h: ih * 0.55 },            // Góc dưới bên trái
-                    { x: iw * 0.25, y: ih * 0.25, w: iw * 0.50, h: ih * 0.50 }     // Vùng trung tâm 50% (Zoom cận)
+                    { x: 0, y: 0, w: iw, h: ih },
+                    { x: iw * 0.45, y: 0, w: iw * 0.55, h: ih * 0.55 },
+                    { x: iw * 0.15, y: ih * 0.15, w: iw * 0.70, h: ih * 0.70 },
+                    { x: 0, y: 0, w: iw * 0.55, h: ih * 0.55 },
+                    { x: iw * 0.45, y: ih * 0.45, w: iw * 0.55, h: ih * 0.55 },
+                    { x: 0, y: ih * 0.45, w: iw * 0.55, h: ih * 0.55 },
+                    { x: iw * 0.25, y: ih * 0.25, w: iw * 0.50, h: ih * 0.50 }
                 ];
 
                 for (let reg of regions) {
-                    // Chuẩn hóa kích thước vùng cắt về khoảng ~1200px để ZBar/ZXing đọc nét nhất
                     const scale = Math.min(1.5, 1200 / Math.max(reg.w, reg.h));
                     canvas.width = Math.floor(reg.w * scale);
                     canvas.height = Math.floor(reg.h * scale);
@@ -1235,7 +1273,7 @@
             }
         }
 
-        // ================= XỬ LÝ QUÉT ĐA ĐỊNH DẠNG 1D (BARCODE) & 2D (QR CODE) CHO SK, SM, SERI SẠC =================
+        // ================= 4. XỬ LÝ QUÉT ĐA ĐỊNH DẠNG 1D & 2D CHO SK, SM, SERI SẠC =================
         let fieldScanner = null;
         let isFieldScannerRunning = false;
         let currentTargetFieldId = null;
@@ -1322,7 +1360,7 @@
             }
         }
 
-        // ================= XỬ LÝ CHỤP ẢNH TỰ ĐỘNG CẮT VIỀN (AUTO CROP CANVA) =================
+        // ================= 5. CHỤP ẢNH 2 MẶT CCCD & TỰ ĐỘNG CẮT VIỀN CHUẨN THEO KHUNG XANH =================
         let captureStream = null;
         let currentCaptureStep = 1;
         let frontImageBase64 = null;
@@ -1379,16 +1417,17 @@
             }
         }
 
+        // Cắt bỏ thêm 2.5% rìa mép trong để loại bỏ hoàn toàn viền nền thừa
         function autoCropCardCanvas(sourceCanvas) {
             const w = sourceCanvas.width;
             const h = sourceCanvas.height;
 
-            const trimX = Math.floor(w * 0.03);
-            const trimY = Math.floor(h * 0.03);
+            const trimX = Math.floor(w * 0.025);
+            const trimY = Math.floor(h * 0.025);
 
             const croppedCanvas = document.createElement('canvas');
-            croppedCanvas.width = w - (trimX * 2);
-            croppedCanvas.height = h - (trimY * 2);
+            croppedCanvas.width = Math.max(10, w - (trimX * 2));
+            croppedCanvas.height = Math.max(10, h - (trimY * 2));
 
             const cropCtx = croppedCanvas.getContext('2d');
             cropCtx.drawImage(
@@ -1400,30 +1439,61 @@
             return croppedCanvas;
         }
 
+        // Tính chính xác vùng hiển thị của khung #capture-guide-box trên video đang bị giới hạn chiều cao (object-fit: cover)
         function snapCurrentStep() {
             const video = document.getElementById('capture-video');
+            const guideBox = document.getElementById('capture-guide-box');
             const canvas = document.getElementById('hidden-capture-canvas');
             if (!video.videoWidth || !video.videoHeight) return;
 
-            const cardAspectRatio = 85.6 / 53.98;
             const vw = video.videoWidth;
             const vh = video.videoHeight;
 
-            let cropW = vw * 0.88;
-            let cropH = cropW / cardAspectRatio;
+            const videoRect = video.getBoundingClientRect();
+            const guideRect = guideBox.getBoundingClientRect();
 
-            if (cropH > vh * 0.82) {
-                cropH = vh * 0.82;
-                cropW = cropH * cardAspectRatio;
+            let startX, startY, cropW, cropH;
+
+            if (videoRect.width > 0 && videoRect.height > 0 && guideRect.width > 0 && guideRect.height > 0) {
+                // Tính tỷ lệ phóng (scale) và phần bị che khuất của object-fit: cover
+                const scale = Math.max(videoRect.width / vw, videoRect.height / vh);
+                const renderedW = vw * scale;
+                const renderedH = vh * scale;
+
+                // Phần video bị tràn ra ngoài khung hiển thị ở 2 bên hoặc trên/dưới
+                const offsetX = (renderedW - videoRect.width) / 2;
+                const offsetY = (renderedH - videoRect.height) / 2;
+
+                // Vị trí tương đối của khung xanh so với góc trên-trái của thẻ video
+                const relLeft = guideRect.left - videoRect.left;
+                const relTop = guideRect.top - videoRect.top;
+
+                // Đổi ngược từ tọa độ màn hình sang tọa độ Pixel gốc của luồng Camera
+                startX = Math.max(0, (relLeft + offsetX) / scale);
+                startY = Math.max(0, (relTop + offsetY) / scale);
+                cropW = Math.min(vw - startX, guideRect.width / scale);
+                cropH = Math.min(vh - startY, guideRect.height / scale);
+            } else {
+                // Dự phòng nếu trình duyệt không trả về getBoundingClientRect
+                const cardAspectRatio = 85.6 / 53.98;
+                cropW = vw * 0.85;
+                cropH = cropW / cardAspectRatio;
+                if (cropH > vh * 0.80) {
+                    cropH = vh * 0.80;
+                    cropW = cropH * cardAspectRatio;
+                }
+                startX = (vw - cropW) / 2;
+                startY = (vh - cropH) / 2;
             }
 
-            let startX = (vw - cropW) / 2;
-            let startY = (vh - cropH) / 2;
+            // Xuất ảnh độ nét cao chuẩn tỷ lệ thẻ CCCD (85.6 : 53.98)
+            const outputWidth = 1027;
+            const outputHeight = 648;
+            canvas.width = outputWidth;
+            canvas.height = outputHeight;
 
-            canvas.width = cropW;
-            canvas.height = cropH;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
+            ctx.drawImage(video, startX, startY, cropW, cropH, 0, 0, outputWidth, outputHeight);
 
             const finalCroppedCanvas = autoCropCardCanvas(canvas);
             const imgBase64 = finalCroppedCanvas.toDataURL('image/jpeg', 0.95);
@@ -1471,6 +1541,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            stripZaloTrackingUrl();
             syncData();
             setTimeout(autoScaleA4Preview, 100);
         });
