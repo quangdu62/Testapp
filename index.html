@@ -262,7 +262,7 @@
         }
         .btn-capture-cccd:hover { background: #0369a1; }
 
-        #qr-cccd-video, #qr-p8-video {
+        #qr-cccd-video, #qr-p8-video, #qr-field-video-1d {
             max-height: 210px !important;
             object-fit: cover !important;
         }
@@ -1135,11 +1135,30 @@
                     <button type="button" onclick="stopFieldScanner()" style="width: 100%; margin-top: 8px; padding: 8px; background: #dc2626; color: white; border: none; font-size: 13.5px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
                 </div>
 
-                <!-- KHUNG QUÉT 1D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC -->
-                <div id="qr-field-scanner-container-1d" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 10px; border-radius: 8px; border: 2px solid #2563eb;">
-                    <div id="qr-field-scan-title-1d" style="color: #38bdf8; font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 6px;">Đang quét 1D...</div>
-                    <div id="qr-field-reader-1d" style="width: 100%; min-height: 240px; background: #000; border-radius: 6px; overflow: hidden;"></div>
-                    <button type="button" onclick="stopFieldScanner1D()" style="width: 100%; margin-top: 6px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
+                <!-- KHUNG QUÉT 1D KHE NGANG SIÊU NHẠY (LÕI C++ ZBAR WASM + ZOOM 2.2X) -->
+                <div id="qr-field-scanner-container-1d" style="display: none; margin-bottom: 8px; position: relative; background: #0f172a; padding: 12px; border-radius: 8px; border: 2px solid #2563eb;">
+                    <div id="qr-field-scan-title-1d" style="color: #38bdf8; font-weight: bold; font-size: 13.5px; text-align: center; margin-bottom: 8px;">
+                        Giữ máy cách 20-25cm, căn dòng mã vạch 1D nằm ngang khe xanh
+                    </div>
+                    <div style="position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #000;">
+                        <video id="qr-field-video-1d" autoplay playsinline muted style="width: 100%; display: block; object-fit: cover; max-height: 210px;"></video>
+                        <!-- Khe ngắm nằm ngang 92% chuyên trị mã vạch dài 17 ký tự & tách dòng chùm tem Honda -->
+                        <div style="position: absolute; top: 50%; left: 50%; width: 92%; height: 76px; transform: translate(-50%, -50%); border: 2px solid #38bdf8; border-radius: 6px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.62); pointer-events: none;">
+                            <div style="position: absolute; width: 100%; height: 2px; background: #ef4444; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px #ef4444;"></div>
+                        </div>
+                    </div>
+                    <div id="field-1d-zoom-box" style="display: none; align-items: center; justify-content: space-between; margin-top: 8px; color: #fff; font-size: 12px;">
+                        <span>Thu nhỏ</span>
+                        <input type="range" id="field-1d-zoom-slider" min="1" max="4" step="0.1" value="2.2" style="flex: 1; margin: 0 10px;" oninput="applyField1DZoom(this.value)">
+                        <span>Phóng to</span>
+                    </div>
+                    <div style="margin-top: 8px; text-align: center; background: #1e293b; padding: 6px; border-radius: 6px; border: 1px dashed #38bdf8;">
+                        <label for="qr-field-1d-file-input" style="color: #38bdf8; font-size: 12.5px; font-weight: bold; cursor: pointer; display: block;">
+                            📁 Bấm chọn ảnh chụp mã vạch 1D từ máy
+                        </label>
+                        <input type="file" id="qr-field-1d-file-input" accept="image/*" style="display: none;" onchange="scanField1DFromFile(this)">
+                    </div>
+                    <button type="button" onclick="stopFieldScanner1D()" style="width: 100%; margin-top: 8px; padding: 10px; background: #dc2626; color: white; border: none; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer;">Đóng Camera Quét</button>
                 </div>
 
                 <div class="grid-2">
@@ -2497,13 +2516,11 @@
                 btnPrint.disabled = true;
 
                 try {
-                    // Đưa bản sao vào buồng kết xuất chuẩn màn hình máy tính (794px x 1123px)
                     chamber.innerHTML = '';
                     const clonedSheet = activeSheet.cloneNode(true);
                     clonedSheet.classList.add('active');
                     chamber.appendChild(clonedSheet);
 
-                    // Chờ toàn bộ hình ảnh (QR, CCCD) nạp hoàn tất trong buồng kết xuất
                     const imgs = clonedSheet.querySelectorAll('img');
                     await Promise.all(Array.from(imgs).map(img => {
                         if (!img.src || img.style.display === 'none') return Promise.resolve();
@@ -2514,7 +2531,6 @@
                         });
                     }));
 
-                    // Chờ trình duyệt ổn định bố cục chuẩn Desktop
                     await new Promise(r => setTimeout(r, 120));
 
                     const { jsPDF } = window.jspdf;
@@ -3360,88 +3376,306 @@
             if (container) container.style.display = 'none';
         }
 
-        // ================= HÀM QUÉT 1D CHO SỐ KHUNG, SỐ MÁY, SERI SẠC =================
-        let fieldScanner1D = null;
+        // ================= HÀM QUÉT 1D KHE NGANG SIÊU NHẠY (LÕI C++ ZBAR WASM + ZXING 1D + ZOOM 2.2X) =================
+        let field1DStream = null;
+        let field1DTrack = null;
         let isFieldScanner1DRunning = false;
         let currentTarget1DId = null;
+        let barcode1DDetectorEngine = null;
+
+        const zxing1DHints = new Map();
+        zxing1DHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+        zxing1DHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXing.BarcodeFormat.CODE_128,
+            ZXing.BarcodeFormat.CODE_39,
+            ZXing.BarcodeFormat.CODE_93,
+            ZXing.BarcodeFormat.ITF,
+            ZXing.BarcodeFormat.EAN_13,
+            ZXing.BarcodeFormat.EAN_8,
+            ZXing.BarcodeFormat.CODABAR
+        ]);
+        const zxing1DReader = new ZXing.MultiFormatReader();
+        zxing1DReader.setHints(zxing1DHints);
+
+        async function get1DBarcodeDetector() {
+            if (barcode1DDetectorEngine) return barcode1DDetectorEngine;
+            const formats1D = ['code_128', 'code_39', 'code_93', 'itf', 'ean_13', 'ean_8', 'codabar', 'upc_a', 'upc_e'];
+            try {
+                if (!('BarcodeDetector' in window) && window.barcodeDetectorPolyfill) {
+                    window.BarcodeDetector = window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill;
+                }
+                if ('BarcodeDetector' in window) {
+                    barcode1DDetectorEngine = new BarcodeDetector({ formats: formats1D });
+                } else if (window.barcodeDetectorPolyfill) {
+                    barcode1DDetectorEngine = new window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill({ formats: formats1D });
+                }
+            } catch (e) {
+                if (window.barcodeDetectorPolyfill) {
+                    barcode1DDetectorEngine = new window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill({ formats: ['code_128', 'code_39', 'ean_13'] });
+                }
+            }
+            return barcode1DDetectorEngine;
+        }
+
+        function clean1DBarcodeString(raw) {
+            if (!raw) return "";
+            let str = raw.trim();
+            // Nếu chuẩn Code 39 trả về dấu * bọc 2 đầu (như *RLHJK0389TY408244*), gỡ bỏ dấu * để giữ đúng chuỗi gốc
+            if (str.length > 2 && str.startsWith('*') && str.endsWith('*')) {
+                str = str.slice(1, -1).trim();
+            }
+            return str;
+        }
+
+        function decode1DCanvasWithZXing(canvas) {
+            try {
+                const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+                const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.GlobalHistogramBinarizer(luminanceSource));
+                const res = zxing1DReader.decodeWithState(binaryBitmap);
+                zxing1DReader.reset();
+                if (res && res.getText()) return res.getText();
+            } catch (e) {
+                zxing1DReader.reset();
+            }
+            try {
+                const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+                const binaryBitmap2 = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+                const res2 = zxing1DReader.decodeWithState(binaryBitmap2);
+                zxing1DReader.reset();
+                if (res2 && res2.getText()) return res2.getText();
+            } catch (e2) {
+                zxing1DReader.reset();
+            }
+            return null;
+        }
+
+        async function tryDecode1DCanvas(canvas) {
+            const detector = await get1DBarcodeDetector();
+            if (detector) {
+                try {
+                    const barcodes = await detector.detect(canvas);
+                    if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                        const val = clean1DBarcodeString(barcodes[0].rawValue);
+                        if (val.length >= 4) return val;
+                    }
+                } catch (e) {}
+            }
+            const zxingText = decode1DCanvasWithZXing(canvas);
+            if (zxingText) {
+                const val = clean1DBarcodeString(zxingText);
+                if (val.length >= 4) return val;
+            }
+            return null;
+        }
+
+        function boostContrastFor1D(canvas) {
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const w = canvas.width;
+            const h = canvas.height;
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const d = imgData.data;
+
+            let minL = 255, maxL = 0;
+            for (let i = 0; i < d.length; i += 16) {
+                const lum = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
+                if (lum < minL) minL = lum;
+                if (lum > maxL) maxL = lum;
+            }
+            const range = Math.max(1, maxL - minL);
+            for (let i = 0; i < d.length; i += 4) {
+                const lum = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
+                let norm = ((lum - minL) * 255) / range;
+                // Làm sắc vạch đen trắng cho mã vạch 17 ký tự mật độ cao
+                norm = norm < 120 ? Math.max(0, norm * 0.65) : Math.min(255, norm * 1.18);
+                d[i] = d[i + 1] = d[i + 2] = norm;
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
 
         async function startFieldScanner1D(fieldId, fieldLabel) {
             await stopAllRunningCameras();
             currentTarget1DId = fieldId;
             const container = document.getElementById('qr-field-scanner-container-1d');
+            const video = document.getElementById('qr-field-video-1d');
+            const zoomBox = document.getElementById('field-1d-zoom-box');
             const title = document.getElementById('qr-field-scan-title-1d');
-            title.innerText = "Đưa mã vạch 1D của " + fieldLabel + " vào khung";
+
+            title.innerText = `Đang quét 1D ${fieldLabel}: Giữ cách 20-25cm, căn vạch vào khe ngang`;
             container.style.display = 'block';
             container.scrollIntoView({ behavior: 'smooth' });
 
-            if (!fieldScanner1D) {
-                fieldScanner1D = new Html5Qrcode("qr-field-reader-1d", {
-                    experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true
-                    }
-                });
-            }
-
-            const config = {
-                fps: 20,
-                qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    const boxWidth = Math.max(220, Math.floor(viewfinderWidth * 0.85));
-                    const boxHeight = Math.max(100, Math.floor(viewfinderHeight * 0.45));
-                    return { width: boxWidth, height: boxHeight };
-                },
-                videoConstraints: {
-                    facingMode: { ideal: "environment" },
-                    width: { ideal: 1920, min: 1280 },
-                    height: { ideal: 1080, min: 720 }
-                },
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_93,
-                    Html5QrcodeSupportedFormats.ITF,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.DATA_MATRIX,
-                    Html5QrcodeSupportedFormats.PDF_417,
-                    Html5QrcodeSupportedFormats.QR_CODE
-                ]
-            };
+            await get1DBarcodeDetector();
 
             try {
-                await fieldScanner1D.start(
-                    { facingMode: "environment" },
-                    config,
-                    async (decodedText) => {
-                        const cleanVal = decodedText.trim();
-                        const targetInput = document.getElementById(currentTarget1DId);
-                        if (targetInput) {
-                            targetInput.value = cleanVal;
-                            syncData();
-                        }
-                        await stopFieldScanner1D();
-                        showToast(`✅ Đã quét xong mã 1D cho ${fieldLabel}!`);
-                    },
-                    (errorMessage) => {}
-                );
+                try {
+                    field1DStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: "environment" },
+                            width: { ideal: 2560, min: 1280 },
+                            height: { ideal: 1440, min: 720 }
+                        },
+                        audio: false
+                    });
+                } catch (resErr) {
+                    field1DStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "environment" },
+                        audio: false
+                    });
+                }
+
+                video.srcObject = field1DStream;
+                await video.play();
+
+                field1DTrack = field1DStream.getVideoTracks()[0];
+                const capabilities = (field1DTrack && field1DTrack.getCapabilities) ? field1DTrack.getCapabilities() : {};
+
+                const advancedConstraints = [];
+                if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+                    advancedConstraints.push({ focusMode: 'continuous' });
+                }
+
+                if (capabilities.zoom) {
+                    zoomBox.style.display = 'flex';
+                    const slider = document.getElementById('field-1d-zoom-slider');
+                    slider.min = capabilities.zoom.min;
+                    slider.max = capabilities.zoom.max;
+                    slider.step = capabilities.zoom.step || 0.1;
+                    const targetZoom = Math.min(2.2, capabilities.zoom.max);
+                    slider.value = targetZoom;
+                    advancedConstraints.push({ zoom: targetZoom });
+                } else {
+                    zoomBox.style.display = 'none';
+                }
+
+                if (advancedConstraints.length > 0 && field1DTrack.applyConstraints) {
+                    field1DTrack.applyConstraints({ advanced: advancedConstraints }).catch(() => {});
+                }
+
                 isFieldScanner1DRunning = true;
+                scan1DFrameLoop(fieldLabel);
+
             } catch (err) {
-                alert("Không thể khởi động camera quét 1D: " + err);
-                container.style.display = 'none';
+                alert("Không thể khởi động camera quét 1D. Bạn có thể bấm chọn ảnh chụp mã vạch bên dưới!");
                 isFieldScanner1DRunning = false;
             }
         }
 
-        async function stopFieldScanner1D() {
-            const container = document.getElementById('qr-field-scanner-container-1d');
-            if (fieldScanner1D && isFieldScanner1DRunning) {
-                try {
-                    await fieldScanner1D.stop();
-                    fieldScanner1D.clear();
-                } catch (err) {}
-                isFieldScanner1DRunning = false;
+        async function scan1DFrameLoop(fieldLabel) {
+            if (!isFieldScanner1DRunning) return;
+
+            const video = document.getElementById('qr-field-video-1d');
+            const canvas = document.getElementById('qr-preprocess-canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+                const vw = video.videoWidth;
+                const vh = video.videoHeight;
+
+                // Cắt đúng dải khe ngang ở tâm camera (Rộng 92% để lấy đủ Quiet Zone 2 đầu, Cao 26% để tách dòng tem Honda)
+                const cropW = Math.floor(vw * 0.92);
+                const cropH = Math.floor(vh * 0.26);
+                const sx = Math.floor((vw - cropW) / 2);
+                const sy = Math.floor((vh - cropH) / 2);
+
+                // Phóng đại chiều ngang lên 1400px để giãn khoảng cách các vạch 17 ký tự
+                canvas.width = 1400;
+                canvas.height = Math.max(240, Math.floor((cropH * 1400) / cropW));
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
+
+                // Thử lần 1: Ảnh gốc phóng đại
+                let decoded = await tryDecode1DCanvas(canvas);
+                if (!decoded) {
+                    // Thử lần 2: Tăng tương phản tách vạch đen-trắng (chuyên trị tem trong hộc nhựa tối VinFast)
+                    boostContrastFor1D(canvas);
+                    decoded = await tryDecode1DCanvas(canvas);
+                }
+
+                if (decoded) {
+                    const targetInput = document.getElementById(currentTarget1DId);
+                    if (targetInput) {
+                        targetInput.value = decoded;
+                        syncData();
+                    }
+                    await stopFieldScanner1D();
+                    showToast(`✅ Đã quét xong mã 1D: ${decoded}`);
+                    return;
+                }
             }
+
+            if (isFieldScanner1DRunning) {
+                setTimeout(() => scan1DFrameLoop(fieldLabel), 65);
+            }
+        }
+
+        function applyField1DZoom(zoomVal) {
+            if (field1DTrack && field1DTrack.applyConstraints) {
+                field1DTrack.applyConstraints({ advanced: [{ zoom: parseFloat(zoomVal) }] }).catch(() => {});
+            }
+        }
+
+        async function scanField1DFromFile(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            showToast("⏳ Đang phân tích mã vạch 1D từ ảnh...", 2000);
+
+            const img = new Image();
+            img.onload = async () => {
+                const canvas = document.getElementById('qr-preprocess-canvas');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                const iw = img.width;
+                const ih = img.height;
+
+                // Quét toàn ảnh và các dải ngang từ trên xuống dưới
+                const bands = [
+                    { x: 0, y: 0, w: iw, h: ih },
+                    { x: 0, y: ih * 0.25, w: iw, h: ih * 0.50 },
+                    { x: 0, y: ih * 0.35, w: iw, h: ih * 0.30 },
+                    { x: 0, y: ih * 0.15, w: iw, h: ih * 0.35 },
+                    { x: 0, y: ih * 0.50, w: iw, h: ih * 0.35 }
+                ];
+
+                for (let b of bands) {
+                    const targetW = 1600;
+                    const targetH = Math.max(300, Math.floor((b.h * targetW) / b.w));
+                    canvas.width = targetW;
+                    canvas.height = targetH;
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(img, b.x, b.y, b.w, b.h, 0, 0, targetW, targetH);
+
+                    let decodedText = await tryDecode1DCanvas(canvas);
+                    if (!decodedText) {
+                        boostContrastFor1D(canvas);
+                        decodedText = await tryDecode1DCanvas(canvas);
+                    }
+
+                    if (decodedText) {
+                        const targetInput = document.getElementById(currentTarget1DId);
+                        if (targetInput) {
+                            targetInput.value = decodedText;
+                            syncData();
+                        }
+                        await stopFieldScanner1D();
+                        showToast(`✅ Đã lấy mã 1D: ${decodedText}`);
+                        input.value = "";
+                        return;
+                    }
+                }
+
+                alert("Không đọc được mã vạch 1D trong ảnh. Hãy chụp rõ nét dãy sọc mã vạch!");
+                input.value = "";
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        async function stopFieldScanner1D() {
+            isFieldScanner1DRunning = false;
+            if (field1DStream) {
+                field1DStream.getTracks().forEach(track => track.stop());
+                field1DStream = null;
+                field1DTrack = null;
+            }
+            const container = document.getElementById('qr-field-scanner-container-1d');
             if (container) {
                 container.style.display = 'none';
             }
