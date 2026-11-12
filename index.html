@@ -4203,5 +4203,620 @@
             setTimeout(autoScaleA4Preview, 100);
         });
     </script>
+<!--
+  DÁN NGUYÊN KHỐI NÀY NGAY TRƯỚC THẺ </body> (SAU khối script cũ của bạn).
+  Không cần xóa code cũ: các hàm cùng tên bên dưới sẽ ghi đè hàm cũ.
+-->
+<script>
+/* =====================================================================
+   QV SCANNER ENGINE v2  –  quét QR/DataMatrix/1D siêu nhạy
+   - Đa động cơ: BarcodeDetector gốc + ZBar WASM + ZXing (đọc được cả DataMatrix)
+   - Đa bộ lọc: ảnh gốc / kéo giãn tương phản / san phẳng ánh sáng (flat-field)
+                / ĐẢO MÀU (QR khắc laser trắng trên nền đen) / ngưỡng thích ứng
+   - Đa vùng: quét theo ô lưới + phóng to, xoay ±4°/±8°/90° cho mã vạch 1D
+   - Mã 1D yếu (Code39, ITF...) phải đọc trùng 2 lần mới nhận -> chống đọc sai
+   - Nhiều mã trong 1 ảnh (chùm tem Honda) -> hiện bảng cho bạn chọn
+   ===================================================================== */
+(function () {
+'use strict';
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const tick = () => new Promise(r => setTimeout(r, 0));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+
+/* ---------------------------------------------------------------- canvas */
+function mkCanvas(w, h) {
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w));
+    c.height = Math.max(1, Math.round(h));
+    return c;
+}
+function ctx2d(c) { return c.getContext('2d', { willReadFrequently: true }); }
+
+function clampRoi(r, W, H) {
+    const x = clamp(r.x, 0, W - 2), y = clamp(r.y, 0, H - 2);
+    return { x, y, w: Math.max(2, Math.min(r.w, W - x)), h: Math.max(2, Math.min(r.h, H - y)) };
+}
+
+/* Cắt 1 vùng từ video/ảnh -> canvas phóng/thu về cỡ `targetLong`, có thể xoay nhẹ hoặc xoay 90° */
+function makeRoiCanvas(src, roi, targetLong, angleDeg, rot90) {
+    let scale = targetLong / Math.max(roi.w, roi.h);
+    scale = clamp(scale, 0.25, 4);
+    const ow = Math.max(8, Math.round(roi.w * scale));
+    const oh = Math.max(8, Math.round(roi.h * scale));
+    let c = mkCanvas(ow, oh);
+    const ctx = ctx2d(c);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, ow, oh);
+    ctx.save();
+    if (angleDeg) {
+        ctx.translate(ow / 2, oh / 2);
+        ctx.rotate(angleDeg * Math.PI / 180);
+        ctx.drawImage(src, roi.x, roi.y, roi.w, roi.h, -ow / 2, -oh / 2, ow, oh);
+    } else {
+        ctx.drawImage(src, roi.x, roi.y, roi.w, roi.h, 0, 0, ow, oh);
+    }
+    ctx.restore();
+    if (rot90) {
+        const c2 = mkCanvas(oh, ow);
+        const x2 = ctx2d(c2);
+        x2.translate(oh, 0);
+        x2.rotate(Math.PI / 2);
+        x2.drawImage(c, 0, 0);
+        c = c2;
+    }
+    return c;
+}
+
+/* ---------------------------------------------------------- image filters */
+function toGray(id) {
+    const d = id.data, n = d.length >> 2, g = new Uint8ClampedArray(n);
+    for (let i = 0, j = 0; i < n; i++, j += 4) g[i] = (d[j] * 77 + d[j + 1] * 150 + d[j + 2] * 29) >> 8;
+    return g;
+}
+function grayToCanvas(g, w, h) {
+    const c = mkCanvas(w, h), ctx = ctx2d(c), id = ctx.createImageData(w, h), d = id.data;
+    for (let i = 0, j = 0; i < g.length; i++, j += 4) { d[j] = d[j + 1] = d[j + 2] = g[i]; d[j + 3] = 255; }
+    ctx.putImageData(id, 0, 0);
+    return c;
+}
+function invert(g) {
+    const o = new Uint8ClampedArray(g.length);
+    for (let i = 0; i < g.length; i++) o[i] = 255 - g[i];
+    return o;
+}
+function pctRange(hist, total, p) {
+    let s = 0, lo = 0, hi = hist.length - 1;
+    for (let i = 0; i < hist.length; i++) { s += hist[i]; if (s >= total * p) { lo = i; break; } }
+    s = 0;
+    for (let i = hist.length - 1; i >= 0; i--) { s += hist[i]; if (s >= total * p) { hi = i; break; } }
+    return [lo, hi];
+}
+/* Kéo giãn tương phản theo percentile 1% - 99% */
+function stretch(g) {
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < g.length; i++) hist[g[i]]++;
+    let [lo, hi] = pctRange(hist, g.length, 0.01);
+    if (hi - lo < 12) { const m = (hi + lo) / 2; lo = m - 6; hi = m + 6; }
+    const lut = new Uint8ClampedArray(256);
+    for (let i = 0; i < 256; i++) lut[i] = clamp(((i - lo) * 255) / (hi - lo), 0, 255);
+    const o = new Uint8ClampedArray(g.length);
+    for (let i = 0; i < g.length; i++) o[i] = lut[g[i]];
+    return o;
+}
+/* Box blur bằng ảnh tích phân */
+function boxBlur(g, w, h, r) {
+    const W = w + 1, I = new Float64Array(W * (h + 1));
+    for (let y = 0; y < h; y++) {
+        let row = 0;
+        for (let x = 0; x < w; x++) { row += g[y * w + x]; I[(y + 1) * W + x + 1] = I[y * W + x + 1] + row; }
+    }
+    const out = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) {
+        const y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
+        for (let x = 0; x < w; x++) {
+            const x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1);
+            const s = I[y1 * W + x1] - I[y0 * W + x1] - I[y1 * W + x0] + I[y0 * W + x0];
+            out[y * w + x] = s / ((x1 - x0) * (y1 - y0));
+        }
+    }
+    return out;
+}
+/* San phẳng ánh sáng + khuếch đại: cứu QR khắc chìm/nổi cùng màu nền (nhựa xanh) và QR khắc laser trên vỏ đen */
+function flatField(g, w, h) {
+    const r = Math.max(8, Math.round(Math.min(w, h) / 10));
+    const bl = boxBlur(g, w, h, r);
+    const diff = new Float32Array(g.length), hist = new Uint32Array(256);
+    for (let i = 0; i < g.length; i++) {
+        const v = g[i] - bl[i];
+        diff[i] = v;
+        hist[clamp(Math.round(v) + 128, 0, 255)]++;
+    }
+    let [lo, hi] = pctRange(hist, g.length, 0.01);
+    lo -= 128; hi -= 128;
+    if (hi - lo < 12) { const m = (hi + lo) / 2; lo = m - 6; hi = m + 6; }
+    const o = new Uint8ClampedArray(g.length), k = 255 / (hi - lo);
+    for (let i = 0; i < g.length; i++) o[i] = clamp((diff[i] - lo) * k, 0, 255);
+    return o;
+}
+/* Ngưỡng thích ứng cục bộ */
+function adaptive(g, w, h, c) {
+    const r = Math.max(6, Math.round(Math.min(w, h) / 12));
+    const bl = boxBlur(g, w, h, r), o = new Uint8ClampedArray(g.length);
+    for (let i = 0; i < o.length; i++) o[i] = g[i] < bl[i] - c ? 0 : 255;
+    return o;
+}
+
+function newCache(c) { return { c, w: c.width, h: c.height, g: null, flat: null }; }
+function getVariant(k, name) {
+    if (name === 'raw') return k.c;
+    if (!k.g) k.g = toGray(ctx2d(k.c).getImageData(0, 0, k.w, k.h));
+    const flat = () => k.flat || (k.flat = flatField(k.g, k.w, k.h));
+    let out;
+    switch (name) {
+        case 'stretch': out = stretch(k.g); break;
+        case 'inv': out = invert(stretch(k.g)); break;
+        case 'flat': out = flat(); break;
+        case 'flatinv': out = invert(flat()); break;
+        case 'adapt': out = adaptive(flat(), k.w, k.h, 4); break;
+        case 'adaptinv': out = invert(adaptive(flat(), k.w, k.h, 4)); break;
+        default: return k.c;
+    }
+    return grayToCanvas(out, k.w, k.h);
+}
+const V2D = ['raw', 'flat', 'inv', 'flatinv', 'adapt', 'adaptinv'];
+const V1D = ['raw', 'stretch', 'flat', 'adapt'];
+
+/* ---------------------------------------------------------------- engines */
+const FORMATS_ALL = ['qr_code', 'data_matrix', 'code_128', 'code_39', 'code_93', 'itf', 'ean_13', 'ean_8', 'codabar', 'upc_a', 'upc_e'];
+
+let nativeDet = null, nativeTried = false;
+async function getNative() {
+    if (nativeTried) return nativeDet;
+    nativeTried = true;
+    try {
+        if ('BarcodeDetector' in window) {
+            const sup = await BarcodeDetector.getSupportedFormats();
+            const f = FORMATS_ALL.filter(x => sup.includes(x));
+            if (f.length) nativeDet = new BarcodeDetector({ formats: f });
+        }
+    } catch (e) {}
+    return nativeDet;
+}
+function getZbar() {
+    const z = window.zbarWasm || window.zbar;
+    return z && z.scanImageData ? z : null;
+}
+let poly = null, polyTried = false;
+function getPoly() {
+    if (polyTried) return poly;
+    polyTried = true;
+    try {
+        if (!getZbar() && window.barcodeDetectorPolyfill) {
+            poly = new window.barcodeDetectorPolyfill.BarcodeDetectorPolyfill({
+                formats: ['qr_code', 'code_128', 'code_39', 'code_93', 'itf', 'ean_13', 'ean_8', 'codabar', 'upc_a', 'upc_e']
+            });
+        }
+    } catch (e) {}
+    return poly;
+}
+const ZB_MAP = { qrcode: 'qr_code', code128: 'code_128', code39: 'code_39', code93: 'code_93', i25: 'itf', ean13: 'ean_13', ean8: 'ean_8', upca: 'upc_a', upce: 'upc_e', codabar: 'codabar' };
+
+async function zbarDecode(canvas) {
+    const z = getZbar();
+    if (!z) return [];
+    try {
+        const id = ctx2d(canvas).getImageData(0, 0, canvas.width, canvas.height);
+        const syms = await z.scanImageData(id);
+        const out = [];
+        for (const s of syms) {
+            let t = '';
+            try { t = s.decode(); } catch (e) {
+                try { t = new TextDecoder().decode(s.data); } catch (e2) {}
+            }
+            const k = String(s.typeName || '').replace('ZBAR_', '').toLowerCase();
+            if (t) out.push({ text: t, format: ZB_MAP[k] || k });
+        }
+        return out;
+    } catch (e) { return []; }
+}
+
+let zxReader = null;
+function getZx() {
+    if (zxReader) return zxReader;
+    if (!window.ZXing) return null;
+    try {
+        const B = ZXing.BarcodeFormat, h = new Map();
+        h.set(ZXing.DecodeHintType.TRY_HARDER, true);
+        h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [B.QR_CODE, B.DATA_MATRIX, B.CODE_128, B.CODE_39, B.CODE_93, B.ITF, B.EAN_13, B.EAN_8, B.CODABAR]);
+        zxReader = new ZXing.MultiFormatReader();
+        zxReader.setHints(h);
+    } catch (e) { zxReader = null; }
+    return zxReader;
+}
+function zxDecode(canvas) {
+    const rd = getZx();
+    if (!rd) return [];
+    for (const Bin of [ZXing.HybridBinarizer, ZXing.GlobalHistogramBinarizer]) {
+        try {
+            const src = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+            const r = rd.decodeWithState(new ZXing.BinaryBitmap(new Bin(src)));
+            if (r && r.getText()) {
+                let f = 'unknown';
+                try { f = String(ZXing.BarcodeFormat[r.getBarcodeFormat()]).toLowerCase(); } catch (e) {}
+                return [{ text: r.getText(), format: f }];
+            }
+        } catch (e) {} finally { try { rd.reset(); } catch (e) {} }
+    }
+    return [];
+}
+
+async function decodeCanvas(canvas) {
+    const res = [];
+    const nd = await getNative();
+    if (nd) {
+        try {
+            const b = await nd.detect(canvas);
+            for (const x of b) if (x.rawValue) res.push({ text: x.rawValue, format: x.format });
+        } catch (e) {}
+    }
+    res.push(...await zbarDecode(canvas));
+    const pl = getPoly();
+    if (pl) {
+        try {
+            const b = await pl.detect(canvas);
+            for (const x of b) if (x.rawValue) res.push({ text: x.rawValue, format: x.format });
+        } catch (e) {}
+    }
+    if (!res.length) res.push(...zxDecode(canvas));
+    return res;
+}
+
+/* ----------------------------------------------------- làm sạch / xác thực */
+function cleanText(t) {
+    let s = String(t || '').replace(/[\x00-\x1F\x7F]/g, '').trim();
+    if (s.length > 2 && s[0] === '*' && s[s.length - 1] === '*') s = s.slice(1, -1).trim(); // Code39 *...*
+    return s;
+}
+const WEAK = /^(code_39|code_93|itf|codabar|ean_13|ean_8|upc_a|upc_e|i25)/;
+function plausible(t, f) {
+    if (!t) return false;
+    if (WEAK.test(f)) return t.length >= 6 && /^[A-Za-z0-9\-\.\/\+ %$]+$/.test(t);
+    if (f === 'code_128') return t.length >= 4;
+    return t.length >= 3;
+}
+function Collector(accept) { this.m = new Map(); this.accept = accept; }
+Collector.prototype.add = function (hits) {
+    for (const h of hits) {
+        const t = cleanText(h.text);
+        if (!plausible(t, h.format)) continue;
+        if (this.accept && !this.accept(t)) continue;
+        let e = this.m.get(t);
+        if (!e) { e = { text: t, format: h.format, count: 0, weak: WEAK.test(h.format) }; this.m.set(t, e); }
+        e.count++;
+    }
+};
+Collector.prototype.confirmed = function () {
+    return [...this.m.values()].filter(e => !e.weak || e.count >= 2).sort((a, b) => b.count - a.count);
+};
+Collector.prototype.all = function () { return [...this.m.values()].sort((a, b) => b.count - a.count); };
+
+/* ------------------------------------------------- chọn mã / ghi vào ô nhập */
+function showPicker(choices, title) {
+    return new Promise(resolve => {
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.88);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#fff;border-radius:12px;padding:16px;width:420px;max-width:100%;max-height:85vh;overflow:auto;font-family:Arial,sans-serif;';
+        const h = document.createElement('div');
+        h.textContent = title;
+        h.style.cssText = 'font-weight:bold;color:#1e3a8a;margin-bottom:10px;font-size:15px;';
+        box.appendChild(h);
+        const done = v => { ov.remove(); resolve(v); };
+        choices.forEach(c => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = c;
+            b.style.cssText = 'display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px;border:1px solid #93c5fd;background:#eff6ff;border-radius:8px;font-size:15px;font-weight:bold;word-break:break-all;cursor:pointer;';
+            b.onclick = () => done(c);
+            box.appendChild(b);
+        });
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.textContent = 'Bỏ qua';
+        x.style.cssText = 'width:100%;padding:10px;border:none;background:#dc2626;color:#fff;border-radius:8px;font-weight:bold;cursor:pointer;';
+        x.onclick = () => done(null);
+        box.appendChild(x);
+        ov.appendChild(box);
+        document.body.appendChild(ov);
+    });
+}
+function buildChoices(list, fieldId) {
+    const out = [];
+    const push = s => { s = (s || '').trim(); if (s && !out.includes(s)) out.push(s); };
+    list.forEach(e => push(e.text));
+    list.forEach(e => {
+        if (/[\s|;,&?=\/:]/.test(e.text)) {
+            e.text.split(/[\s|;,&?=\/:]+/).forEach(t => {
+                if (t.length >= 6 && /[0-9]/.test(t) && /^[A-Za-z0-9\-_.]+$/.test(t)) push(t);
+            });
+        }
+    });
+    const vin = /^[A-Z0-9]{17}$/i, eng = /^[A-Z0-9]{3,6}-\d{5,8}$/i;
+    const good = s => fieldId === 'in_sk' ? vin.test(s) : fieldId === 'in_sm' ? eng.test(s) : false;
+    out.sort((a, b) => (good(b) ? 1 : 0) - (good(a) ? 1 : 0));
+    const goods = out.filter(good);
+    return { out, auto: goods.length === 1 ? goods[0] : (out.length === 1 ? out[0] : null) };
+}
+async function deliverToField(list, fieldId, label) {
+    const { out, auto } = buildChoices(list, fieldId);
+    let val = auto;
+    if (!val) val = await showPicker(out, `Chọn mã đúng cho: ${label}`);
+    if (!val) return;
+    const el = $(fieldId);
+    if (el) { el.value = val; if (typeof syncData === 'function') syncData(); }
+    showToast(('✅ ' + label + ': ' + val).slice(0, 90));
+}
+
+/* ------------------------------------------------------------ kế hoạch quét */
+// Chiến lược quét trực tiếp (theo vùng NHÌN THẤY trên màn hình, đã tính object-fit: cover)
+const S2D = [
+    { sq: .85, v: 'raw' }, { sq: .85, v: 'flat' }, { sq: .85, v: 'inv' }, { sq: 1, v: 'raw' },
+    { sq: .85, v: 'flatinv' }, { sq: .6, v: 'flat' }, { sq: .85, v: 'adapt' }, { sq: 1, v: 'flat' },
+    { sq: .85, v: 'adaptinv' }, { sq: .6, v: 'inv' }, { sq: .4, v: 'flat' }, { sq: .6, v: 'flatinv' },
+    { w: 1, h: 1, v: 'flat' }, { w: 1, h: 1, v: 'inv' }
+];
+const S1D = [
+    { w: .94, h: .40, v: 'raw' }, { w: .94, h: .40, v: 'stretch' }, { w: .94, h: .40, v: 'flat' },
+    { w: .94, h: .70, v: 'raw' }, { w: .94, h: .40, v: 'adapt' },
+    { w: .94, h: .40, v: 'raw', a: -4 }, { w: .94, h: .40, v: 'raw', a: 4 },
+    { w: .94, h: .70, v: 'flat' }, { w: .94, h: .40, v: 'flat', a: -7 }, { w: .94, h: .40, v: 'flat', a: 7 },
+    { w: 1, h: 1, v: 'raw' }, { w: .94, h: .22, v: 'stretch' }
+];
+
+function visibleRect(video) {
+    const vw = video.videoWidth, vh = video.videoHeight, r = video.getBoundingClientRect();
+    if (!r.width || !r.height) return { x: 0, y: 0, w: vw, h: vh };
+    const s = Math.max(r.width / vw, r.height / vh), w = r.width / s, h = r.height / s;
+    return { x: (vw - w) / 2, y: (vh - h) / 2, w, h };
+}
+function specToRoi(sp, vis) {
+    let w, h;
+    if (sp.sq) { w = h = sp.sq * Math.min(vis.w, vis.h); } else { w = sp.w * vis.w; h = sp.h * vis.h; }
+    return { x: vis.x + (vis.w - w) / 2, y: vis.y + (vis.h - h) / 2, w, h };
+}
+
+function plan2D(iw, ih) {
+    const m = Math.min(iw, ih), P = [{ roi: { x: 0, y: 0, w: iw, h: ih }, target: 1400 }];
+    const axis = (len, side) => {
+        const step = side / 2, n = len > side ? Math.ceil((len - side) / step) + 1 : 1;
+        return n > 1 ? Array.from({ length: n }, (_, i) => side / 2 + i * (len - side) / (n - 1)) : [len / 2];
+    };
+    for (const s of [.8, .55, .38, .26]) {
+        const side = s * m, tiles = [];
+        for (const cy of axis(ih, side)) for (const cx of axis(iw, side)) tiles.push({ cx, cy });
+        tiles.sort((a, b) => Math.hypot(a.cx - iw / 2, a.cy - ih / 2) - Math.hypot(b.cx - iw / 2, b.cy - ih / 2));
+        for (const t of tiles) P.push({ roi: { x: t.cx - side / 2, y: t.cy - side / 2, w: side, h: side }, target: 900 });
+    }
+    return P;
+}
+function plan1D(iw, ih) {
+    const P = [];
+    const bands = [[0, 1], [.3, .4], [.15, .35], [.5, .35], [.65, .35], [0, .5], [.5, .5], [.38, .2], [.58, .2], [.2, .2], [.75, .25]];
+    for (const rot of [0, 1]) {
+        for (const a of (rot ? [0] : [0, -4, 4, -8, 8])) {
+            for (const [p0, pl] of bands) {
+                const roi = rot ? { x: p0 * iw, y: 0, w: pl * iw, h: ih } : { x: 0, y: p0 * ih, w: iw, h: pl * ih };
+                P.push({ roi, angle: a, rot90: !!rot, target: 1800 });
+            }
+        }
+    }
+    return P;
+}
+
+async function loadImage(file) {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) {}
+    return await new Promise((res, rej) => {
+        const img = new Image(), url = URL.createObjectURL(file);
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = url;
+    });
+}
+
+/* Quét ảnh chọn từ máy / chụp bằng camera gốc (độ phân giải cao nhất, đáng tin nhất) */
+async function scanFile(file, kind, o) {
+    const img = await loadImage(file);
+    const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
+    const plan = kind === '1d' ? plan1D(iw, ih) : plan2D(iw, ih);
+    const variants = kind === '1d' ? V1D : V2D;
+    const col = new Collector(o.accept);
+    const t0 = performance.now(), budget = kind === '1d' ? 15000 : 18000;
+    let firstAt = 0;
+    outer:
+    for (const p of plan) {
+        const base = makeRoiCanvas(img, clampRoi(p.roi, iw, ih), p.target, p.angle || 0, p.rot90);
+        const cache = newCache(base);
+        for (const v of variants) {
+            const hits = await decodeCanvas(getVariant(cache, v));
+            if (hits.length) col.add(hits);
+            if (!firstAt && col.confirmed().length) {
+                firstAt = performance.now();
+                if (!o.collectMore) break outer;
+            }
+        }
+        if (firstAt && performance.now() - firstAt > 1500) break;
+        if (performance.now() - t0 > budget) break;
+        await tick();
+    }
+    const c = col.confirmed();
+    return c.length ? c : col.all();
+}
+
+/* ------------------------------------------------------------ camera trực tiếp */
+async function openCam() {
+    const tries = [
+        { video: { facingMode: { ideal: 'environment' }, width: { ideal: 2560 }, height: { ideal: 1440 } }, audio: false },
+        { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+        { video: { facingMode: 'environment' }, audio: false }
+    ];
+    let last;
+    for (const c of tries) { try { return await navigator.mediaDevices.getUserMedia(c); } catch (e) { last = e; } }
+    throw last;
+}
+
+function Live(cfg) {
+    let stream = null, track = null, running = false, token = 0;
+
+    function stop() {
+        running = false; token++;
+        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; track = null; }
+        const v = $(cfg.videoId);
+        if (v) { try { v.pause(); } catch (e) {} v.srcObject = null; }
+        const box = $(cfg.containerId);
+        if (box) box.style.display = 'none';
+    }
+    function setZoom(val) {
+        if (track && track.applyConstraints) track.applyConstraints({ advanced: [{ zoom: parseFloat(val) }] }).catch(() => {});
+    }
+    async function start(o) {
+        if (typeof stopAllRunningCameras === 'function') await stopAllRunningCameras();
+        const box = $(cfg.containerId), video = $(cfg.videoId), zoomBox = $(cfg.zoomBoxId), status = $(cfg.statusId);
+        box.style.display = 'block';
+        box.scrollIntoView({ behavior: 'smooth' });
+        if (status) status.innerText = 'Đang khởi động camera + bộ giải mã...';
+        try {
+            stream = await openCam();
+            video.srcObject = stream;
+            await video.play();
+            track = stream.getVideoTracks()[0];
+            const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+            const adv = [];
+            if (caps.focusMode && caps.focusMode.includes('continuous')) adv.push({ focusMode: 'continuous' });
+            if (caps.zoom && zoomBox) {
+                zoomBox.style.display = 'flex';
+                const sl = $(cfg.sliderId);
+                sl.min = caps.zoom.min; sl.max = caps.zoom.max; sl.step = caps.zoom.step || 0.1;
+                const z = Math.min(cfg.zoom, caps.zoom.max);
+                sl.value = z;
+                adv.push({ zoom: z });
+            } else if (zoomBox) zoomBox.style.display = 'none';
+            if (adv.length && track.applyConstraints) track.applyConstraints({ advanced: adv }).catch(() => {});
+            if (status) status.innerText = o.msg;
+            running = true;
+            const my = ++token;
+            loop(my, o, new Collector(o.accept));
+        } catch (err) {
+            if (status) status.innerText = 'Không mở được camera – hãy bấm "chọn ảnh" bên dưới';
+            alert('Không thể mở camera trực tiếp. Bạn bấm dòng chữ xanh bên dưới để chụp/chọn ảnh (cách này đọc tốt nhất).');
+        }
+    }
+    async function loop(my, o, col) {
+        const video = $(cfg.videoId);
+        const strat = cfg.kind === '1d' ? S1D : S2D, target = cfg.kind === '1d' ? 1800 : 900;
+        let i = 0, extra = -1;
+        while (running && my === token) {
+            if (video.readyState >= 2 && video.videoWidth > 0) {
+                const vis = visibleRect(video), vw = video.videoWidth, vh = video.videoHeight;
+                for (let k = 0; k < 2 && running && my === token; k++) {
+                    const sp = strat[i++ % strat.length];
+                    const roi = clampRoi(specToRoi(sp, vis), vw, vh);
+                    const base = makeRoiCanvas(video, roi, target, sp.a || 0, false);
+                    const hits = await decodeCanvas(getVariant(newCache(base), sp.v));
+                    if (hits.length) col.add(hits);
+                }
+                const conf = col.confirmed();
+                if (conf.length) {
+                    if (extra < 0) extra = cfg.collectMore ? 8 : 0;
+                    if (extra-- <= 0) {
+                        if (my !== token) return;
+                        stop();
+                        await o.onDone(conf);
+                        return;
+                    }
+                }
+            }
+            await sleep(25);
+        }
+    }
+    return { start, stop, setZoom };
+}
+
+const L_CCCD = Live({ containerId: 'qr-cccd-reader-container', videoId: 'qr-cccd-video', zoomBoxId: 'zoom-control-box', sliderId: 'zoom-slider', statusId: 'cccd-scan-status', kind: '2d', zoom: 2.0 });
+const L_P8   = Live({ containerId: 'qr-p8-reader-container',  videoId: 'qr-p8-video',   zoomBoxId: 'p8-zoom-control-box', sliderId: 'p8-zoom-slider', statusId: 'p8-scan-status', kind: '2d', zoom: 2.0 });
+const L_2D   = Live({ containerId: 'qr-field-scanner-container', videoId: 'qr-field-video', zoomBoxId: 'field-zoom-box', sliderId: 'field-zoom-slider', statusId: 'field-scan-status', kind: '2d', zoom: 2.0 });
+const L_1D   = Live({ containerId: 'qr-field-scanner-container-1d', videoId: 'qr-field-video-1d', zoomBoxId: 'field-1d-zoom-box', sliderId: 'field-1d-zoom-slider', statusId: 'qr-field-scan-title-1d', kind: '1d', zoom: 2.0, collectMore: true });
+
+const isCCCD = t => t.split('|').length >= 6;
+let cur2D = { id: null, label: '' }, cur1D = { id: null, label: '' };
+
+async function fileFlow(input, kind, stopper, o) {
+    const f = input.files && input.files[0];
+    if (!f) return;
+    showToast('⏳ Đang quét nhiều vùng + nhiều bộ lọc, chờ vài giây...', 4000);
+    try {
+        const list = await scanFile(f, kind, o);
+        if (list.length) { stopper(); await o.onDone(list); }
+        else alert('Không đọc được mã trong ảnh. Hãy chụp gần hơn, đủ sáng, tránh chói/bóng và giữ nét (mã chiếm ≥ 1/4 khung ảnh).');
+    } catch (e) { alert('Lỗi đọc ảnh: ' + e); }
+    input.value = '';
+}
+
+/* ================== GHI ĐÈ CÁC HÀM CŨ (cùng tên) ================== */
+// --- CCCD ---
+const cccdOpts = {
+    msg: 'Đưa góc mã QR CCCD vào ô vuông (cách 10-15cm)',
+    accept: isCCCD,
+    onDone: list => { parseCCCDQR(list[0].text); }
+};
+window.startZaloStyleCCCDScanner = () => L_CCCD.start(cccdOpts);
+window.stopZaloStyleCCCDScanner  = () => L_CCCD.stop();
+window.applyZoom                 = v => L_CCCD.setZoom(v);
+window.scanQRFromFile = input => fileFlow(input, '2d', () => L_CCCD.stop(), cccdOpts);
+
+// --- Trang 8: số hợp đồng / số thẻ ---
+const p8Opts = {
+    msg: 'Đưa mã QR Hợp đồng / Thẻ / CCCD vào ô vuông',
+    accept: null,
+    onDone: list => { fillPage8ContractResult(list[0].text); }
+};
+window.startPage8ContractScanner = () => L_P8.start(p8Opts);
+window.stopPage8ContractScanner  = () => L_P8.stop();
+window.applyPage8Zoom            = v => L_P8.setZoom(v);
+window.scanPage8QRFromFile = input => fileFlow(input, '2d', () => L_P8.stop(), p8Opts);
+
+// --- Quét 2D cho SK / SM / Seri sạc (QR, DataMatrix, QR khắc laser, QR trắng trên nền đen) ---
+function opts2D() {
+    return {
+        msg: `Quét 2D cho ${cur2D.label}: đưa mã vào khung (QR khắc chìm/đảo màu đều đọc được)`,
+        accept: null,
+        onDone: list => deliverToField(list, cur2D.id, cur2D.label)
+    };
+}
+window.startFieldScanner = (fieldId, label) => { cur2D = { id: fieldId, label }; return L_2D.start(opts2D()); };
+window.stopFieldScanner  = () => L_2D.stop();
+window.applyFieldZoom    = v => L_2D.setZoom(v);
+window.scanFieldQRFromFile = input => fileFlow(input, '2d', () => L_2D.stop(), opts2D());
+
+// --- Quét 1D (Code128 / Code39 / ITF... kể cả chùm tem Honda nhiều dòng) ---
+function opts1D() {
+    return {
+        msg: `Quét 1D ${cur1D.label}: giữ cách 15-25cm, căn mã vạch nằm ngang khe xanh`,
+        accept: null,
+        collectMore: true,
+        onDone: list => deliverToField(list, cur1D.id, cur1D.label)
+    };
+}
+window.startFieldScanner1D = (fieldId, label) => { cur1D = { id: fieldId, label }; return L_1D.start(opts1D()); };
+window.stopFieldScanner1D  = () => L_1D.stop();
+window.applyField1DZoom    = v => L_1D.setZoom(v);
+window.scanField1DFromFile = input => fileFlow(input, '1d', () => L_1D.stop(), opts1D());
+
+})();
+</script>
+
 </body>
 </html>
