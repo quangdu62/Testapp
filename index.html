@@ -2172,7 +2172,7 @@
                                     Ảnh này gồm QR + thông tin khách hàng:
                                 </div>
 
-                                <img id="qrImage" crossorigin="anonymous" alt="QR HD Saison" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
+                                <img id="qrImage" alt="QR HD Saison" style="max-width: 100%; height: auto; display: block; margin: 10px auto;">
 
                                 <div style="max-width: 500px; margin: 0 auto; text-align: left;">
                                     <div class="info-line" id="infoContract" style="font-size: 14px; margin-top: 4px; text-align: left;"></div>
@@ -2346,7 +2346,7 @@
                 return;
             }
 
-            if (user === "haiyen" && pass === "123456") {
+            if (user === "Admin" && pass === "Quangdu268@") {
                 localStorage.setItem("quangvinh_logged_user", user);
                 localStorage.setItem("quangvinh_logged_pass", pass);
                 document.getElementById('display-user-name').innerText = user;
@@ -4150,7 +4150,7 @@
             }
 
             var img = document.getElementById("qrImage");
-            img.crossOrigin = "anonymous";
+            
             img.src = qrUrl;
 
             document.getElementById("infoContract").innerText = "Số HĐ: " + contract;
