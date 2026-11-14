@@ -5445,6 +5445,70 @@ window.scanField1DFromFile = input => fileFlow(input, '1d', () => L_1D.stop(), o
 })();
 </script>
 
+<script>
+/* ===== IN NHIỀU BẢN ĐÚNG THỨ TỰ: 1 2 3 4 5 | 1 2 3 4 5 (thay vì 11 22 33 44 55) ===== */
+(function () {
+    'use strict';
 
+    // 1) Ô nhập "Số bản" cạnh nút in
+    function addCopiesBox() {
+        const btn = document.getElementById('btn-main-print');
+        if (!btn || document.getElementById('qv-copies')) return;
+        const wrap = document.createElement('span');
+        wrap.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin-left:10px;font-size:13px;font-weight:bold;color:#334155;';
+        wrap.innerHTML = 'Số bản: <input type="number" id="qv-copies" min="1" max="20" value="1" ' +
+            'style="width:60px;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;">';
+        btn.insertAdjacentElement('afterend', wrap);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addCopiesBox);
+    else addCopiesBox();
+
+    function getCopies() {
+        const el = document.getElementById('qv-copies');
+        let n = el ? parseInt(el.value, 10) : 1;
+        if (isNaN(n) || n < 1) n = 1;
+        return Math.min(n, 20);
+    }
+
+    // 2) Nhân bản các tờ của một mẫu nhiều trang, giữ đúng thứ tự 1..N rồi lặp lại
+    function duplicatePages(sheet, n) {
+        const pages = Array.from(sheet.querySelectorAll(':scope > .contract-page'));
+        if (!pages.length || n < 2) return;
+        for (let c = 1; c < n; c++) {
+            pages.forEach(p => {
+                const clone = p.cloneNode(true);
+                clone.classList.remove('active');
+                clone.setAttribute('data-qv-copy', '1');
+                sheet.appendChild(clone);
+            });
+        }
+    }
+    function removeCopies() {
+        document.querySelectorAll('[data-qv-copy="1"]').forEach(e => e.remove());
+    }
+
+    // 3) In trên máy tính / Ctrl+P
+    window.addEventListener('beforeprint', function () {
+        removeCopies();
+        const sheet = document.querySelector('.paper-sheet.active');
+        if (sheet) duplicatePages(sheet, getCopies());
+    });
+    window.addEventListener('afterprint', removeCopies);
+
+    // 4) Xuất PDF trên điện thoại: nhân bản khi bản sao tờ được đưa vào buồng kết xuất
+    const chamber = document.getElementById('desktop-print-chamber');
+    if (chamber) {
+        new MutationObserver(function (muts) {
+            muts.forEach(function (m) {
+                m.addedNodes.forEach(function (node) {
+                    if (node.nodeType === 1 && node.classList.contains('paper-sheet')) {
+                        duplicatePages(node, getCopies());
+                    }
+                });
+            });
+        }).observe(chamber, { childList: true });
+    }
+})();
+</script>
 </body>
 </html>
